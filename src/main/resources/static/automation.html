@@ -1,0 +1,59 @@
+<section id="automation" class="page hidden">
+  <h2>Automation</h2>
+
+  <!-- Time -->
+  <input type="time" id="triggerTime">
+
+  <!-- Days -->
+  <select id="days">
+    <option value="DAILY">Daily</option>
+    <option value="WEEKDAYS">Weekdays</option>
+  </select>
+
+  <!-- Sensor Dropdown -->
+  <select id="deviceSelect">
+    <option value="FLAME">Flame Sensor</option>
+    <option value="IR">IR Sensor</option>
+    <option value="RAIN">Rain Sensor</option>
+    <option value="SOIL">Soil Sensor</option>
+    <option value="LDR">LDR Sensor</option>
+    <option value="PIR">PIR Sensor</option>
+    <option value="DHT11">DHT11</option>
+    <option value="MQ2">MQ2 Smoke Sensor</option>
+    <option value="MQ6">MQ6 LPG Sensor</option>
+    <option value="WATER">Water Level Sensor</option>
+  </select>
+
+  <!-- Action -->
+  <select id="action">
+    <option value="ON">ON</option>
+    <option value="OFF">OFF</option>
+  </select>
+
+  <button onclick="addRule()">Add Rule</button>
+
+  <div id="ruleList"></div>
+</section>
+
+<script>
+function addRule() {
+
+    const time = document.getElementById("triggerTime").value;
+    const day = document.getElementById("days").value;
+    const device = document.getElementById("deviceSelect").value;
+    const action = document.getElementById("action").value;
+
+    if (!time) {
+        alert("Select time");
+        return;
+    }
+
+    const list = document.getElementById("ruleList");
+
+    list.innerHTML += `
+        <p>
+            ${time} - ${day} → ${device} (${action})
+        </p>
+    `;
+}
+</script>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Room Control</title>
+    <style>
+        body {
+            font-family: Arial;
+            background:#0f172a;
+            color:white;
+            text-align:center;
+        }
+
+        h1 {
+            margin-top:40px;
+        }
+
+        .card {
+            background:#1e293b;
+            padding:20px;
+            margin:20px;
+            border-radius:10px;
+            display:inline-block;
+            width:220px;
+        }
+
+        button {
+            padding:10px 20px;
+            background:#2563eb;
+            border:none;
+            color:white;
+            cursor:pointer;
+            font-size:16px;
+        }
+
+        button:hover {
+            background:#1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+<h1 id="roomTitle"></h1>
+
+<div id="controlPanel"></div>
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const roomId = parseInt(params.get("id"));
+
+document.getElementById("roomTitle").innerText = "Room " + roomId + " Control";
+
+function controlRelay(num, state) {
+    fetch("http://10.218.237.99:8080/relay/" + num + "/" + state);
+}
+
+function loadRoomRelays() {
+
+    document.getElementById("controlPanel").innerHTML = "";
+
+    const startRelay = (roomId - 1) * 2 + 1;
+    const endRelay = startRelay + 1;
+
+    for (let i = startRelay; i <= endRelay; i++) {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <h3>Relay ${i}</h3>
+            <button onclick="controlRelay(${i}, 'on')">ON</button>
+            <button onclick="controlRelay(${i}, 'off')">OFF</button>
+        `;
+
+        document.getElementById("controlPanel").appendChild(card);
+    }
+}
+
+loadRoomRelays();
+
+</script>
+</body>
+</html>

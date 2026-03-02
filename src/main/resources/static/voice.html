@@ -1,0 +1,42 @@
+<h1>Voice Control</h1>
+
+<button onclick="startListening()">Start Voice</button>
+
+<h3>You Said:</h3>
+<p id="voiceText" style="font-size:20px; color:lightgreen;"></p>
+
+<script>
+
+let recognition;
+
+function startListening() {
+
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Speech Recognition not supported in this browser");
+        return;
+    }
+
+    recognition = new webkitSpeechRecognition();
+
+    recognition.lang = "en-IN"; // You can change
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+
+        const transcript = event.results[0][0].transcript;
+
+        // 🔥 Show text on screen
+        document.getElementById("voiceText").innerText = transcript;
+
+        console.log("You said:", transcript);
+    };
+
+    recognition.onerror = function(event) {
+        console.error(event.error);
+    };
+}
+
+</script>

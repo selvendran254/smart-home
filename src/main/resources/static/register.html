@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e2f;
+            font-family: Arial, sans-serif;
+        }
+
+        .register-box {
+            width: 380px;
+            padding: 45px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #2d046f, #270272);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        .register-box h2 {
+            color: white;
+            margin-bottom: 35px;
+            font-size: 28px;
+        }
+
+        .register-box input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            background: #e6e6e6;
+        }
+
+        .register-box button {
+            width: 100%;
+            padding: 14px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .register-box button:hover {
+            background: #43a047;
+        }
+
+        .register-box a {
+            display: block;
+            margin-top: 18px;
+            color: #e0e0ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .register-box a:hover {
+            text-decoration: underline;
+        }
+
+        #msg {
+            margin-top: 15px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-box">
+    <h2>Create Account</h2>
+
+    <input type="text" id="name" placeholder="Full Name">
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+
+    <button onclick="registerUser()">Register</button>
+
+    <a href="login.html">Back to Login</a>
+
+    <p id="msg"></p>
+</div>
+
+<script>
+function registerUser() {
+
+    const name = document.getElementById("name").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    fetch("/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name,
+            username: username,
+            password: password
+        })
+    })
+    .then(res => res.text())
+    .then(data => {
+        if (data === "Registered successfully") {
+            window.location.href = "login.html";
+        } else {
+            document.getElementById("msg").innerText = data;
+        }
+    });
+}
+</script>
+
+</body>
+</html>

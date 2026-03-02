@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Home</title>
+    <style>
+        
+
+        .rooms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.rooms-header h1 {
+    margin: 0;
+}
+
+.rooms-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 40px;
+}
+
+.card {
+    background:#4170bc;
+    padding:40px;
+    border-radius:15px;
+    width:250px;
+    text-align:center;
+    cursor:pointer;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    background:#334155;
+}
+
+
+        body {
+            margin: 0;
+            font-family: Arial;
+            display: flex;
+            background: #0f172a;
+            color: white;
+        }
+        .card {
+    background: #1e293b;
+    padding: 20px;
+    margin: 10px;
+    border-radius: 10px;
+    display: inline-block;
+    width: 220px;
+    color: white;
+}
+ 
+#sensorDashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+        .sidebar {
+            width: 230px;
+            background: #1e293b;
+            padding: 20px;
+            height: 100vh;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .menu-item:hover {
+            background: #22c55e;
+        
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        input {
+            padding: 8px;
+            width: 200px;
+        }
+
+        button {
+            padding: 8px 12px;
+            background: #2563eb;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            margin: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            width: 200px;
+            text-align: center;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Smart Home</h2>
+
+    <div class="menu-item active" onclick="loadRooms()">Rooms</div>
+    <div class="menu-item" onclick="loadSection('Devices')">Devices</div>
+    <div class="menu-item" onclick="loadSection('Automation')">Automation</div>
+    <div class="menu-item" onclick="loadSection('Energy')">Energy</div>
+    <div class="menu-item" onclick="loadSection('Door Unlock')">Door Unlock</div>
+    <div class="menu-item" onclick="loadSection('Voice Control')">Voice Control</div>
+    <div class="menu-item" onclick="logout()">Logout</div>
+</div>
+
+
+
+<div id="roomList" class="rooms-container"></div>
+
+<div class="content" id="contentArea">
+    <h1>Rooms</h1>
+
+   <div class="rooms-container">
+
+    <div class="card" onclick="openRoom(1)">
+        <h2>Living Room</h2>
+    </div>
+
+    <div class="card" onclick="openRoom(2)">
+        <h2>Bedroom 1</h2>
+    </div>
+
+    <div class="card" onclick="openRoom(3)">
+        <h2>Bedroom 2</h2>
+    </div>
+
+    <div class="card" onclick="openRoom(4)">
+        <h2>Kitchen</h2>
+    </div>
+
+    <div class="card" onclick="openRoom(5)">
+        <h2>Bathroom</h2>
+    </div>
+
+    <div class="card" onclick="openRoom(6)">
+        <h2>Hall</h2>
+    </div>
+
+</div>
+
+   
+<script>
+    // 🔐 Check login session before loading dashboard
+fetch("/check-session")
+    .then(res => res.text())
+    .then(data => {
+        if (data === "NO") {
+            window.location.href = "login.html";
+        }
+    });
+
+
+const ROOM_API = "http://10.218.237.99:8080/rooms";
+
+
+let sensorInterval;
+
+
+/* =========================
+   MAIN ROUTER
+========================= */
+function loadSection(name) {
+
+    if (sensorInterval) {
+    clearInterval(sensorInterval);
+    sensorInterval = null;
+}
+
+
+    if (name === "Devices") {
+
+        document.getElementById("contentArea").innerHTML = `
+            <h1>Live Sensor Dashboard</h1>
+            <div id="sensorDashboard"></div>
+        `;
+
+        loadSensorData();
+        sensorInterval = setInterval(loadSensorData, 3000);
+    }
+
+    else if (name === "Rooms") {
+        loadRooms();
+    }
+
+    else if (name === "Automation") {
+
+        fetch("automation.html")
+            .then(res => res.text())
+            .then(html => {
+
+                const content = document.getElementById("contentArea");
+
+                // 🔥 CLEAR FIRST (prevents duplication)
+                content.innerHTML = "";
+
+                // Inject new page
+                content.innerHTML = html;
+
+                // Run automation JS functions
+                setTimeout(() => {
+                    if (window.loadDevices) window.loadDevices();
+                    if (window.loadRules) window.loadRules();
+                }, 50);
+            });
+    }
+
+    else if (name === "Energy") {
+
+    document.getElementById("contentArea").innerHTML = `
+        <h1>Energy Monitoring</h1>
+        <canvas id="energyChart" width="800" height="400"></canvas>
+    `;
+
+    fetch("/api/energy")
+        .then(res => res.json())
+        .then(data => {
+
+            const labels = data.map(e => e.date);
+            const values = data.map(e => e.units);
+
+            const ctx = document.getElementById('energy.jpg').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Energy Usage',
+                        data: values,
+                        borderWidth: 2
+                    }]
+                }
+            });
+
+        });
+}
+
+else if (name === "Voice Control") {
+
+    fetch("voice.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("contentArea").innerHTML = html;
+
+            // 🔥 Attach voice logic after loading
+            setupVoice();
+        });
+}
+   
+else if (name === "Door Unlock") {
+
+        document.getElementById("contentArea").innerHTML = `
+            <h1>Door Unlock</h1>
+            <button onclick="startDoor()" style="padding:12px 20px;font-size:16px;">
+                Start Face Unlock
+            </button>
+            <p id="doorStatus"></p>
+        `;
+    }
+
+function startDoor() {
+    fetch("/door/unlock")
+        .then(res => res.text())
+        .then(data => alert(data));
+}
+
+
+
+}
+
+
+/* =========================
+   SENSOR DASHBOARD
+========================= */
+function loadSensorData() {
+
+    const dashboard = document.getElementById("sensorDashboard");
+
+    // 🔥 STOP if dashboard not present (prevents crash on other pages)
+    if (!dashboard) {
+        return;
+    }
+
+    fetch("http://10.218.237.99:8080/sensor/latest")
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("Server not responding");
+            }
+            return res.text();
+        })
+        .then(text => {
+
+            if (!text) {
+                throw new Error("Empty response from backend");
+            }
+
+            const data = JSON.parse(text);
+
+            dashboard.innerHTML = `
+                <div class="card">
+                    <h3>DHT11</h3>
+                    <p>Temperature: ${data.temperature ?? 0} °C</p>
+                    <p>Humidity: ${data.humidity ?? 0} %</p>
+                </div>
+
+                <div class="card">
+                    <h3>PIR Motion</h3>
+                    <p style="color:${data.motionDetected ? 'red' : 'lightgreen'}">
+                        ${data.motionDetected ? "⚠ Motion Detected" : "No Motion"}
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Flame Sensor</h3>
+                    <p style="color:${data.flameDetected ? 'red' : 'lightgreen'}">
+                        ${data.flameDetected ? "🔥 Flame Detected" : "Safe"}
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>MQ2 Smoke</h3>
+                    <p style="color:${data.mq2Smoke > 300 ? 'red' : 'lightgreen'}">
+                        Level: ${data.mq2Smoke ?? 0}
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>MQ6 LPG</h3>
+                    <p style="color:${data.mq6Lpg > 300 ? 'red' : 'lightgreen'}">
+                        Level: ${data.mq6Lpg ?? 0}
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>LDR</h3>
+                    <p>${data.ldrValue ?? 0}</p>
+                </div>
+
+                <div class="card">
+                    <h3>Soil Moisture</h3>
+                    <p>${data.soilMoisture ?? 0}</p>
+                </div>
+
+                <div class="card">
+                    <h3>Water Level</h3>
+                    <p>${data.waterLevel ?? 0}</p>
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error("Sensor API Error:", error);
+
+            // Only update if dashboard exists
+            if (dashboard) {
+                dashboard.innerHTML =
+                    "<h3 style='color:red;'>Sensor data not available</h3>";
+            }
+        });
+}
+
+
+/* =========================
+   NAVIGATION
+========================= */
+function openRoom(id) {
+    window.location.href = "room.html?id=" + id;
+}
+
+function logout() {
+
+    fetch("/logout")
+        .then(() => {
+            window.location.href = "login.html";
+        })
+        .catch(err => {
+            console.error("Logout error:", err);
+        });
+}
+
+
+
+/* =========================
+   DOOR UNLOCK FUNCTION
+========================= */
+function startDoor() {
+
+    alert("Button working");
+
+    fetch("http://10.218.237.99:8080/door/unlock")
+        .then(res => {
+            alert("Request sent to backend");
+            return res.text();
+        })
+        .then(data => {
+            alert("Server says: " + data);
+        })
+        .catch(err => {
+            alert("Fetch failed");
+            console.error(err);
+        });
+}
+
+
+function loadRooms() {
+
+    document.getElementById("contentArea").innerHTML = `
+        <h1>Rooms</h1>
+
+        <div class="rooms-container">
+
+            <div class="card" onclick="openRoom(1)">
+                <h2>Living Room</h2>
+            </div>
+
+            <div class="card" onclick="openRoom(2)">
+                <h2>Bedroom 1</h2>
+            </div>
+
+            <div class="card" onclick="openRoom(3)">
+                <h2>Bedroom 2</h2>
+            </div>
+
+            <div class="card" onclick="openRoom(4)">
+                <h2>Kitchen</h2>
+            </div>
+
+            <div class="card" onclick="openRoom(5)">
+                <h2>Bathroom</h2>
+            </div>
+
+            <div class="card" onclick="openRoom(6)">
+                <h2>Hall</h2>
+            </div>
+
+        </div>
+    `;
+}
+
+
+/* =========================
+   INITIAL LOAD
+========================= */
+loadRooms();
+
+function setupVoice() {
+
+    window.startListening = function() {
+
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("Speech Recognition not supported");
+            return;
+        }
+
+        const recognition = new webkitSpeechRecognition();
+
+        recognition.lang = "en-IN";
+        recognition.start();
+
+        recognition.onresult = function(event) {
+
+            const transcript = event.results[0][0].transcript;
+
+            document.getElementById("result").innerText = transcript;
+
+            console.log("You said:", transcript);
+        };
+    };
+
+}
+
+</script>
+
+</body>
+</html>
