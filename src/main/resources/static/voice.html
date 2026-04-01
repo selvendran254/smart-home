@@ -1,42 +1,153 @@
-<h1>Voice Control</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Control & AI Assistant</title>
+    <style>
+        body {
+            background-color: #1e1e2f;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        button:hover { background-color: #45a049; }
+        .chat-box {
+            background-color: #2a2a40;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.5);
+        }
+        .user-message {
+            color: #a8d5ff;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            border-bottom: 1px solid #3a3a50;
+            padding-bottom: 10px;
+        }
+        .ai-response {
+            color: #bbf0b1;
+            font-size: 1.1em;
+            white-space: pre-wrap; /* to preserve line breaks from AI */
+        }
+        .loading { font-style: italic; color: #888; }
+    </style>
+</head>
+<body>
 
-<button onclick="startListening()">Start Voice</button>
+    <h1>🎙️ Voice Control & AI Assistant</h1>
+    <div style="margin-bottom: 30px;">
+        <button id="recordBtn" onclick="startVoice()" style="margin-bottom: 10px;">Tap to Speak</button>
+        <br>
+        <span style="color: #888; font-size: 0.9em;">--- or ---</span>
+        <br><br>
+        <input type="text" id="textInput" placeholder="Type your question here..." style="width: 300px; padding: 12px; border-radius: 8px; border: none; font-size: 16px;">
+        <button onclick="sendText()" style="background-color: #2563eb; margin-left: 10px; padding: 12px 20px;">Send</button>
+    </div>
 
-<h3>You Said:</h3>
-<p id="voiceText" style="font-size:20px; color:lightgreen;"></p>
+    <div class="chat-box" id="chatBox" style="display: none;">
+        <div class="user-message">
+            <strong>You Said:</strong> <br>
+            <span id="output"></span>
+        </div>
+        <div class="ai-response">
+            <strong>AI Solution:</strong> <br>
+            <span id="result"></span>
+        </div>
+    </div>
 
 <script>
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 
-let recognition;
+recognition.onstart = function() {
+    document.getElementById("recordBtn").innerText = "Listening...";
+    document.getElementById("recordBtn").style.backgroundColor = "#ff5722";
+};
 
-function startListening() {
+recognition.onend = function() {
+    document.getElementById("recordBtn").innerText = "Tap to Speak";
+    document.getElementById("recordBtn").style.backgroundColor = "#4CAF50";
+};
 
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Speech Recognition not supported in this browser");
-        return;
+recognition.onerror = function(event) {
+    console.error("Speech recognition error:", event.error);
+    document.getElementById("recordBtn").innerText = "Error - Tap to Retry";
+    document.getElementById("recordBtn").style.backgroundColor = "#f44336";
+};
+
+function startVoice() {
+    try {
+        recognition.start();
+    } catch (e) {
+        console.error("Recognition start error:", e);
     }
-
-    recognition = new webkitSpeechRecognition();
-
-    recognition.lang = "en-IN"; // You can change
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.start();
-
-    recognition.onresult = function(event) {
-
-        const transcript = event.results[0][0].transcript;
-
-        // 🔥 Show text on screen
-        document.getElementById("voiceText").innerText = transcript;
-
-        console.log("You said:", transcript);
-    };
-
-    recognition.onerror = function(event) {
-        console.error(event.error);
-    };
 }
 
+function sendText() {
+    const text = document.getElementById("textInput").value;
+    if (!text.trim()) return;
+    
+    document.getElementById("chatBox").style.display = "block";
+    document.getElementById("output").innerText = text;
+    document.getElementById("result").innerHTML = "<span class='loading'>Thinking for a solution...</span>";
+
+    fetch("/voice-command", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ command: text })
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById("result").innerText = data;
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        document.getElementById("result").innerText = "Error connecting to server.";
+    });
+    
+    document.getElementById("textInput").value = "";
+}
+
+recognition.onresult = function(event) {
+    const text = event.results[0][0].transcript;
+    
+    document.getElementById("chatBox").style.display = "block";
+    document.getElementById("output").innerText = text;
+    document.getElementById("result").innerHTML = "<span class='loading'>Thinking for a solution...</span>";
+
+    fetch("/voice-command", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ command: text })
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById("result").innerText = data;
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        document.getElementById("result").innerText = "Error connecting to server.";
+    });
+};
 </script>
+
+</body>
+</html>

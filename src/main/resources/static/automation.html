@@ -1,59 +1,997 @@
-<section id="automation" class="page hidden">
-  <h2>Automation</h2>
-
-  <!-- Time -->
-  <input type="time" id="triggerTime">
-
-  <!-- Days -->
-  <select id="days">
-    <option value="DAILY">Daily</option>
-    <option value="WEEKDAYS">Weekdays</option>
-  </select>
-
-  <!-- Sensor Dropdown -->
-  <select id="deviceSelect">
-    <option value="FLAME">Flame Sensor</option>
-    <option value="IR">IR Sensor</option>
-    <option value="RAIN">Rain Sensor</option>
-    <option value="SOIL">Soil Sensor</option>
-    <option value="LDR">LDR Sensor</option>
-    <option value="PIR">PIR Sensor</option>
-    <option value="DHT11">DHT11</option>
-    <option value="MQ2">MQ2 Smoke Sensor</option>
-    <option value="MQ6">MQ6 LPG Sensor</option>
-    <option value="WATER">Water Level Sensor</option>
-  </select>
-
-  <!-- Action -->
-  <select id="action">
-    <option value="ON">ON</option>
-    <option value="OFF">OFF</option>
-  </select>
-
-  <button onclick="addRule()">Add Rule</button>
-
-  <div id="ruleList"></div>
-</section>
-
-<script>
-function addRule() {
-
-    const time = document.getElementById("triggerTime").value;
-    const day = document.getElementById("days").value;
-    const device = document.getElementById("deviceSelect").value;
-    const action = document.getElementById("action").value;
-
-    if (!time) {
-        alert("Select time");
-        return;
+<style>
+    .automation-container {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        position: relative;
     }
 
-    const list = document.getElementById("ruleList");
+    .main-toggle-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
 
-    list.innerHTML += `
-        <p>
-            ${time} - ${day} → ${device} (${action})
-        </p>
-    `;
-}
+    .main-toggle {
+        display: inline-flex;
+        background: #1e293b;
+        border-radius: 30px;
+        padding: 5px;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    body.light-mode .main-toggle {
+        background: #e2e8f0;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .main-toggle button {
+        background: transparent;
+        color: #94a3b8;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    body.light-mode .main-toggle button {
+        color: #64748b;
+    }
+
+    .main-toggle button.active {
+        background: var(--accent-color);
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
+    body.light-mode .main-toggle button.active {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        color: white !important;
+    }
+
+    .auto-panel {
+        background: #1e293b;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    body.light-mode .auto-panel {
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .auto-panel h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 24px;
+        border-bottom: 2px solid var(--accent-color);
+        padding-bottom: 10px;
+        display: inline-block;
+    }
+
+    .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .form-group select, 
+    .form-group input {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: white;
+        font-size: 16px;
+        outline: none;
+        transition: border 0.3s;
+    }
+
+    body.light-mode .form-group select, 
+    body.light-mode .form-group input {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+
+    .btn-action {
+        background: var(--btn-color);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s transform, 0.3s background;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.2);
+    }
+    
+    .btn-secondary {
+        background: #334155;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    body.light-mode .btn-secondary {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    .rules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .rule-card, .scene-card {
+        background: #334155;
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        border-left: 5px solid var(--accent-color);
+        animation: fadeIn 0.4s ease-out;
+    }
+    
+    body.light-mode .rule-card, body.light-mode .scene-card {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-left: 5px solid var(--accent-color);
+    }
+
+    .scene-card-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .scene-icon {
+        font-size: 32px;
+    }
+
+    .scene-title {
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+    }
+
+    body.light-mode .scene-title {
+        color: #0f172a;
+    }
+
+    .scene-devices {
+        flex-grow: 1;
+        font-size: 14px;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    
+    body.light-mode .scene-devices {
+        color: #475569;
+    }
+
+    .scene-device-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+    
+    body.light-mode .scene-device-item {
+        border-bottom: 1px dashed rgba(0,0,0,0.1);
+    }
+
+    .scene-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .btn-activate {
+        flex-grow: 1;
+        background: #10b981;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: 0.3s;
+    }
+
+    .btn-activate:hover {
+        background: #059669;
+        transform: scale(1.02);
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+    }
+
+    /* Rules specific */
+    .rule-type-badge {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.1);
+    }
+    
+    body.light-mode .rule-type-badge {
+       background: #cbd5e1;
+       color: #0f172a;
+       font-weight: bold;
+    }
+
+    .rule-desc {
+        font-size: 18px;
+        margin-top: 25px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .rule-desc span.highlight {
+        color: var(--accent-color);
+        font-weight: bold;
+    }
+
+    .trigger-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        background: transparent;
+        color: #94a3b8;
+        border: 2px solid #334155;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    body.light-mode .tab-btn {
+        border-color: #cbd5e1;
+        color: #64748b;
+    }
+
+    .tab-btn.active {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+    
+    body.light-mode .tab-btn.active {
+        color: white !important;
+    }
+
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    /* Device Selection Row for Scenes */
+    .device-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .btn-remove-row {
+        background: transparent;
+        color: #ef4444;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    /* Toast Notification */
+    .toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #10b981;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: bold;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: 0.4s ease-out;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: none;
+    }
+
+    .toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Edit Modal overlay logic */
+    .edit-mode {
+        border: 2px dashed #f59e0b;
+        background: rgba(245, 158, 11, 0.05);
+    }
+</style>
+
+<div class="automation-container">
+    
+    <div class="main-toggle-container">
+        <div class="main-toggle">
+            <button id="btn-mode-rules" class="active" onclick="window.toggleMainMode('rules')">Automations (Rules)</button>
+            <button id="btn-mode-scenes" onclick="window.toggleMainMode('scenes')">Smart Scenes</button>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- AUTOMATIONS & RULES SECTION -->
+    <!-- ============================================== -->
+    <div id="section-rules" style="display: block;">
+        <div class="auto-panel" id="rule-builder-panel">
+            <h2 id="rule-form-title">Create Automation Rule</h2>
+            <input type="hidden" id="editRuleId" value="">
+            <button class="btn-secondary" id="btn-cancel-rule-edit" onclick="window.cancelEditRule()" style="display:none; float: right; margin-top: -5px;">Cancel Edit</button>
+            <div style="clear:both;"></div>
+            
+            <div class="trigger-tabs">
+                <button class="tab-btn active" id="btn-timeTab" onclick="window.switchTab('timeTab')">🕒 Time Trigger</button>
+                <button class="tab-btn" id="btn-sensorTab" onclick="window.switchTab('sensorTab')">📡 Sensor Trigger</button>
+                <button class="tab-btn" id="btn-locationTab" onclick="window.switchTab('locationTab')">📍 Location Trigger</button>
+            </div>
+
+            <!-- Time Trigger Section -->
+            <div id="timeTab" class="tab-content active">
+                <div class="form-group">
+                    <label>When time is</label>
+                    <input type="time" id="triggerTime" required>
+                    <select id="triggerDays">
+                        <option value="Daily">Daily</option>
+                        <option value="Weekdays">Weekdays</option>
+                        <option value="Weekends">Weekends</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Turn</label>
+                    <select id="timeAction">
+                        <option value="ON">ON</option>
+                        <option value="OFF">OFF</option>
+                    </select>
+                    <label>the</label>
+                    <select id="timeDevice">
+                        <option value="Living Room Light">Living Room Light</option>
+                        <option value="Bedroom Fan">Bedroom Fan</option>
+                        <option value="Water Pump">Water Pump</option>
+                        <option value="Main Door Lock">Main Door Lock</option>
+                        <option value="AC">AC</option>
+                    </select>
+                </div>
+                <button class="btn-action" onclick="window.addTimeRule()">+ Add Time Rule</button>
+            </div>
+
+            <!-- Sensor Trigger Section -->
+            <div id="sensorTab" class="tab-content">
+                <div class="form-group">
+                    <label>If</label>
+                    <select id="sensorType">
+                        <option value="Temperature">Temperature</option>
+                        <option value="Humidity">Humidity</option>
+                        <option value="Gas Level (MQ7)">Gas Level (MQ7)</option>
+                        <option value="Smoke Level (MQ2)">Smoke Level (MQ2)</option>
+                        <option value="Flame">Flame</option>
+                        <option value="Motion (PIR)">Motion (PIR)</option>
+                        <option value="Water Level">Water Level</option>
+                        <option value="Soil Moisture">Soil Moisture</option>
+                    </select>
+                    
+                    <select id="sensorCondition">
+                        <option value=">">is greater than (&gt;)</option>
+                        <option value="<">is less than (&lt;)</option>
+                        <option value="=">is equal to (=)</option>
+                        <option value="Detected">is Detected</option>
+                    </select>
+                    
+                    <input type="text" id="sensorValue" placeholder="Value" style="width: 100px;">
+                </div>
+                
+                <div class="form-group">
+                    <label>Then turn</label>
+                    <select id="sensorAction">
+                        <option value="ON">ON</option>
+                        <option value="OFF">OFF</option>
+                    </select>
+                    <label>the</label>
+                    <select id="sensorDevice">
+                        <option value="Living Room Light">Living Room Light</option>
+                        <option value="Bedroom Fan">Bedroom Fan</option>
+                        <option value="Exhaust Fan">Exhaust Fan</option>
+                        <option value="Water Pump">Water Pump</option>
+                        <option value="Alarm Buzzer">Alarm Buzzer</option>
+                        <option value="AC">AC</option>
+                    </select>
+                </div>
+                <button class="btn-action" onclick="window.addSensorRule()">+ Add Sensor Rule</button>
+            </div>
+
+            <!-- Location Trigger Section -->
+            <div id="locationTab" class="tab-content">
+                <div class="form-group">
+                    <label>When I</label>
+                    <select id="locationEvent">
+                        <option value="Arrive At">Arrive At</option>
+                        <option value="Leave">Leave</option>
+                    </select>
+                    <input type="text" id="locationPlace" placeholder="Location (e.g., Home)" required style="width: 150px;" value="Home">
+                </div>
+                
+                <div class="form-group">
+                    <label>Then turn</label>
+                    <select id="locationAction">
+                        <option value="ON">ON</option>
+                        <option value="OFF">OFF</option>
+                    </select>
+                    <label>the</label>
+                    <select id="locationDevice">
+                        <option value="Living Room Light">Living Room Light</option>
+                        <option value="Bedroom Fan">Bedroom Fan</option>
+                        <option value="AC">AC</option>
+                        <option value="Water Pump">Water Pump</option>
+                        <option value="Main Door Lock">Main Door Lock</option>
+                    </select>
+                </div>
+                <button class="btn-action" onclick="window.addLocationRule()">+ Add Location Rule</button>
+            </div>
+        </div>
+
+        <div class="auto-panel">
+            <h2>Active Automations</h2>
+            <div id="activeRulesList" class="rules-grid"></div>
+            <p style="color:#64748b; font-style:italic;" id="noRulesMsg">No automation rules created yet.</p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                <h3 style="margin-bottom: 10px; font-size: 16px; color: #94a3b8;">Simulate Geo-Fencing (Testing)</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="window.simulateLocationEvent('Arrive At', 'Home')">📍 Arrive Home</button>
+                    <button class="btn-secondary" onclick="window.simulateLocationEvent('Leave', 'Home')">🏃 Leave Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- SMART SCENES SECTION -->
+    <!-- ============================================== -->
+    <div id="section-scenes" style="display: none;">
+        
+        <div class="auto-panel" id="scene-builder-panel">
+            <h2 id="scene-form-title">Create Smart Scene</h2>
+            <input type="hidden" id="editSceneId" value="">
+            
+            <div class="form-group">
+                <select id="sceneIcon" style="font-size: 20px; width: 80px;">
+                    <option value="🎬">🎬</option>
+                    <option value="🛌">🛌</option>
+                    <option value="🏃">🏃</option>
+                    <option value="🍽️">🍽️</option>
+                    <option value="📖">📖</option>
+                    <option value="🌙">🌙</option>
+                    <option value="☀️">☀️</option>
+                    <option value="🛡️">🛡️</option>
+                    <option value="🎮">🎮</option>
+                </select>
+                <input type="text" id="sceneName" placeholder="Scene Name (e.g., Movie Mode)" required style="flex-grow: 1;">
+            </div>
+
+            <h3 style="margin-top: 10px; margin-bottom: 15px; font-size: 16px; color: #94a3b8;">Assigned Devices & Actions</h3>
+            <div id="sceneDeviceRows">
+                <!-- Javascript will inject rows here -->
+            </div>
+
+            <div style="margin-bottom: 25px; margin-top: 15px;">
+                <button class="btn-secondary" onclick="window.addSceneDeviceRow()">+ Add Device Action</button>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-action" id="btn-save-scene" onclick="window.saveScene()">Save Scene</button>
+                <button class="btn-secondary" id="btn-cancel-edit" onclick="window.cancelEditScene()" style="display:none;">Cancel Edit</button>
+            </div>
+        </div>
+
+        <div class="auto-panel">
+            <h2>Saved Scenes</h2>
+            <div id="savedScenesList" class="rules-grid"></div>
+            <p style="color:#64748b; font-style:italic;" id="noScenesMsg">No scenes created yet.</p>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- TOAST -->
+<div id="automation-toast" class="toast">
+    <span id="toast-icon">✅</span>
+    <span id="toast-message">Success</span>
+</div>
+
+<script>
+    // --- MAIN TOGGLE LOGIC ---
+    window.toggleMainMode = function(mode) {
+        document.getElementById('btn-mode-rules').classList.remove('active');
+        document.getElementById('btn-mode-scenes').classList.remove('active');
+        document.getElementById('section-rules').style.display = 'none';
+        document.getElementById('section-scenes').style.display = 'none';
+
+        if(mode === 'rules') {
+            document.getElementById('btn-mode-rules').classList.add('active');
+            document.getElementById('section-rules').style.display = 'block';
+            window.loadRules();
+        } else {
+            document.getElementById('btn-mode-scenes').classList.add('active');
+            document.getElementById('section-scenes').style.display = 'block';
+            window.loadScenes();
+        }
+    };
+
+    // --- TOAST LOGIC ---
+    window.showToast = function(message, type="success") {
+        const toast = document.getElementById('automation-toast');
+        const icon = document.getElementById('toast-icon');
+        const msg = document.getElementById('toast-message');
+        
+        msg.innerText = message;
+        if(type === 'success') {
+            icon.innerText = "✅";
+            toast.style.background = "#10b981";
+        } else if(type === 'info') {
+            icon.innerText = "ℹ️";
+            toast.style.background = "#3b82f6";
+        }
+        
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    };
+
+    // ==========================================
+    // RULES LOGIC (Existing)
+    // ==========================================
+    window.switchTab = function (tabId) {
+        document.querySelectorAll('#section-rules .tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('#section-rules .tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('btn-' + tabId).classList.add('active');
+    };
+
+    let rules = JSON.parse(localStorage.getItem('smarthome_rules')) || [];
+
+    function handleRuleSave(newRuleBase) {
+        const editId = document.getElementById("editRuleId").value;
+        if(editId) {
+            const idx = rules.findIndex(r => r.id == editId);
+            if(idx > -1) rules[idx] = { id: parseInt(editId), ...newRuleBase };
+            window.showToast("Rule Updated Successfully!");
+            window.cancelEditRule();
+        } else {
+            rules.push({ id: Date.now(), ...newRuleBase });
+            window.showToast("Rule Added Successfully!");
+        }
+        saveAndRenderRules();
+    }
+
+    window.editRule = function(id) {
+        const rule = rules.find(r => r.id == id);
+        if(!rule) return;
+
+        document.getElementById("editRuleId").value = rule.id;
+        document.getElementById("rule-form-title").innerText = "Edit Automation Rule";
+        document.getElementById("btn-cancel-rule-edit").style.display = "block";
+        document.getElementById("rule-builder-panel").classList.add("edit-mode");
+
+        if(rule.type === 'Time') {
+            window.switchTab('timeTab');
+            document.getElementById("triggerTime").value = rule.time;
+            document.getElementById("triggerDays").value = rule.days;
+            document.getElementById("timeAction").value = rule.action;
+            document.getElementById("timeDevice").value = rule.device;
+        } else if(rule.type === 'Sensor') {
+            window.switchTab('sensorTab');
+            document.getElementById("sensorType").value = rule.sType;
+            document.getElementById("sensorCondition").value = rule.sCond;
+            document.getElementById("sensorValue").value = rule.sVal;
+            document.getElementById("sensorAction").value = rule.action;
+            document.getElementById("sensorDevice").value = rule.device;
+        } else if(rule.type === 'Location') {
+            window.switchTab('locationTab');
+            document.getElementById("locationEvent").value = rule.lEvent;
+            document.getElementById("locationPlace").value = rule.lPlace;
+            document.getElementById("locationAction").value = rule.action;
+            document.getElementById("locationDevice").value = rule.device;
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditRule = function() {
+        document.getElementById("editRuleId").value = "";
+        document.getElementById("rule-form-title").innerText = "Create Automation Rule";
+        document.getElementById("btn-cancel-rule-edit").style.display = "none";
+        document.getElementById("rule-builder-panel").classList.remove("edit-mode");
+    };
+
+    window.addTimeRule = function() {
+        const time = document.getElementById("triggerTime").value;
+        const days = document.getElementById("triggerDays").value;
+        const action = document.getElementById("timeAction").value;
+        const device = document.getElementById("timeDevice").value;
+        if (!time) return window.showToast("Please select a trigger time.", "info");
+        handleRuleSave({ type: 'Time', time, days, action, device });
+    };
+
+    window.addSensorRule = function() {
+        const sType = document.getElementById("sensorType").value;
+        const sCond = document.getElementById("sensorCondition").value;
+        const sVal = document.getElementById("sensorValue").value;
+        const action = document.getElementById("sensorAction").value;
+        const device = document.getElementById("sensorDevice").value;
+        if (!sVal && sCond !== "Detected") return window.showToast("Provide a sensor value.", "info");
+        handleRuleSave({ type: 'Sensor', sType, sCond, sVal, action, device });
+    };
+
+    window.addLocationRule = function() {
+        const lEvent = document.getElementById("locationEvent").value;
+        const lPlace = document.getElementById("locationPlace").value.trim();
+        const action = document.getElementById("locationAction").value;
+        const device = document.getElementById("locationDevice").value;
+        if (!lPlace) return window.showToast("Please provide a location.", "info");
+        handleRuleSave({ type: 'Location', lEvent, lPlace, action, device });
+    };
+
+    window.simulateLocationEvent = function(triggerEvent, triggerPlace) {
+        let triggered = 0;
+        rules.forEach(r => {
+            if(r.type === 'Location' && r.lEvent === triggerEvent && r.lPlace.toLowerCase() === triggerPlace.toLowerCase()) {
+                console.log(`[GEO-FENCE] Triggered! Turned ${r.action} ${r.device}`);
+                triggered++;
+            }
+        });
+
+        if (triggered > 0) {
+            window.showToast(`📍 Event triggered ${triggered} automation(s)!`);
+        } else {
+            window.showToast(`No automations found for ${triggerEvent} ${triggerPlace}.`, "info");
+        }
+    };
+
+    window.deleteRule = function(id) {
+        rules = rules.filter(r => r.id !== id);
+        saveAndRenderRules();
+    };
+
+    function saveAndRenderRules() {
+        localStorage.setItem('smarthome_rules', JSON.stringify(rules));
+        window.loadRules();
+    }
+
+    window.loadRules = function() {
+        if(!document.getElementById("activeRulesList")) return;
+        const list = document.getElementById("activeRulesList");
+        const msg = document.getElementById("noRulesMsg");
+        
+        list.innerHTML = "";
+        if (rules.length === 0) {
+            msg.style.display = "block";
+            return;
+        }
+        
+        msg.style.display = "none";
+        rules.forEach(rule => {
+            const card = document.createElement("div");
+            card.className = "rule-card";
+            let descHTML = "", icon = "";
+
+            if (rule.type === 'Time') {
+                icon = "🕒";
+                descHTML = `When time is <span class="highlight">${rule.time}</span> (${rule.days}), turn <span class="highlight">${rule.action}</span> the <span class="highlight">${rule.device}</span>.`;
+            } else if (rule.type === 'Sensor') {
+                icon = "📡";
+                let conditionText = rule.sCond === "Detected" 
+                    ? `is <span class="highlight">Detected</span>` 
+                    : `<span class="highlight">${rule.sCond} ${rule.sVal}</span>`;
+                descHTML = `If ${rule.sType} ${conditionText}, turn <span class="highlight">${rule.action}</span> the <span class="highlight">${rule.device}</span>.`;
+            } else if (rule.type === 'Location') {
+                icon = "📍";
+                descHTML = `When you <span class="highlight">${rule.lEvent}</span> <span class="highlight">${rule.lPlace}</span>, turn <span class="highlight">${rule.action}</span> the <span class="highlight">${rule.device}</span>.`;
+            }
+
+            card.innerHTML = `
+                <div class="rule-type-badge">${icon} ${rule.type}</div>
+                <div class="rule-desc">${descHTML}</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" style="padding: 8px 16px;" onclick="window.editRule(${rule.id})">✎ Edit</button>
+                    <button class="btn-delete" onclick="window.deleteRule(${rule.id})">Delete</button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    };
+
+
+    // ==========================================
+    // SCENES LOGIC (New)
+    // ==========================================
+    const DEFAULT_SCENES = [
+        {
+            id: 'scene_sleep_1',
+            name: 'Sleep Mode',
+            icon: '🌙',
+            devices: [
+                { name: 'Living Room Light', action: 'OFF' },
+                { name: 'Bedroom Fan', action: 'ON' },
+                { name: 'Main Door Lock', action: 'ON' }
+            ]
+        },
+        {
+            id: 'scene_movie_2',
+            name: 'Movie Mode',
+            icon: '🎬',
+            devices: [
+                { name: 'Living Room Light', action: 'DIM' },
+                { name: 'AC', action: 'ON' }
+            ]
+        },
+        {
+            id: 'scene_away_3',
+            name: 'Away Mode',
+            icon: '🏃',
+            devices: [
+                { name: 'Living Room Light', action: 'OFF' },
+                { name: 'Bedroom Fan', action: 'OFF' },
+                { name: 'AC', action: 'OFF' },
+                { name: 'Alarm Buzzer', action: 'ON' },
+                { name: 'Main Door Lock', action: 'ON' }
+            ]
+        }
+    ];
+
+    let scenes = JSON.parse(localStorage.getItem('smarthome_scenes'));
+    if(!scenes || scenes.length === 0) {
+        scenes = JSON.parse(JSON.stringify(DEFAULT_SCENES));
+        localStorage.setItem('smarthome_scenes', JSON.stringify(scenes));
+    }
+
+    const availableDevices = ["Living Room Light", "Bedroom Fan", "Kitchen Light", "Bathroom Exhaust", "AC", "Water Pump", "Main Door Lock", "Alarm Buzzer"];
+    
+    // Generates a single device selection HTML Row
+    function getDeviceRowHTML(selectedDevice = "", selectedAction = "ON") {
+        let deviceOptions = availableDevices.map(d => `<option value="${d}" ${d === selectedDevice ? 'selected' : ''}>${d}</option>`).join("");
+        let actionOptions = `
+            <option value="ON" ${selectedAction === 'ON' ? 'selected' : ''}>ON</option>
+            <option value="OFF" ${selectedAction === 'OFF' ? 'selected' : ''}>OFF</option>
+            <option value="DIM" ${selectedAction === 'DIM' ? 'selected' : ''}>DIM</option>
+        `;
+
+        return `
+            <div class="device-row scene-device-input-row">
+                <select class="scene-device-name" style="flex-grow: 1;">${deviceOptions}</select>
+                <select class="scene-device-action" style="width: 100px;">${actionOptions}</select>
+                <button class="btn-remove-row" title="Remove Device" onclick="this.parentElement.remove()">✖</button>
+            </div>
+        `;
+    }
+
+    window.addSceneDeviceRow = function(device="", action="") {
+        const container = document.getElementById('sceneDeviceRows');
+        container.insertAdjacentHTML('beforeend', getDeviceRowHTML(device, action));
+    };
+
+    window.saveScene = function() {
+        const idInput = document.getElementById("editSceneId").value;
+        const icon = document.getElementById("sceneIcon").value;
+        const name = document.getElementById("sceneName").value.trim();
+
+        if(!name) {
+            window.showToast("Please provide a Scene Name.", "info");
+            return;
+        }
+
+        const deviceRows = document.querySelectorAll('.scene-device-input-row');
+        if(deviceRows.length === 0) {
+            window.showToast("Add at least one device to the scene.", "info");
+            return;
+        }
+
+        const configuredDevices = [];
+        deviceRows.forEach(row => {
+            configuredDevices.push({
+                name: row.querySelector('.scene-device-name').value,
+                action: row.querySelector('.scene-device-action').value
+            });
+        });
+
+        if (idInput) {
+            // Edit existing
+            const idx = scenes.findIndex(s => s.id === idInput);
+            if(idx > -1) {
+                scenes[idx] = { id: idInput, name, icon, devices: configuredDevices };
+                window.showToast("Scene Updated!");
+            }
+        } else {
+            // Create new
+            scenes.push({
+                id: 'custom_' + Date.now(),
+                name,
+                icon,
+                devices: configuredDevices
+            });
+            window.showToast("Scene Created!");
+        }
+
+        localStorage.setItem('smarthome_scenes', JSON.stringify(scenes));
+        window.cancelEditScene(); // reset form
+        window.loadScenes();
+    };
+
+    window.editScene = function(id) {
+        const scene = scenes.find(s => s.id === id);
+        if(!scene) return;
+
+        document.getElementById("editSceneId").value = scene.id;
+        document.getElementById("sceneName").value = scene.name;
+        document.getElementById("sceneIcon").value = scene.icon;
+        
+        document.getElementById('sceneDeviceRows').innerHTML = "";
+        scene.devices.forEach(d => {
+            window.addSceneDeviceRow(d.name, d.action);
+        });
+
+        document.getElementById("scene-form-title").innerText = "Edit " + scene.name;
+        document.getElementById("btn-save-scene").innerText = "Update Scene";
+        document.getElementById("btn-cancel-edit").style.display = "inline-block";
+        
+        document.getElementById("scene-builder-panel").classList.add("edit-mode");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.cancelEditScene = function() {
+        document.getElementById("editSceneId").value = "";
+        document.getElementById("sceneName").value = "";
+        document.getElementById("sceneIcon").value = "🎬";
+        document.getElementById('sceneDeviceRows').innerHTML = "";
+        
+        window.addSceneDeviceRow(); // 1 default row
+        
+        document.getElementById("scene-form-title").innerText = "Create Smart Scene";
+        document.getElementById("btn-save-scene").innerText = "Save Scene";
+        document.getElementById("btn-cancel-edit").style.display = "none";
+        document.getElementById("scene-builder-panel").classList.remove("edit-mode");
+    };
+
+    window.deleteScene = function(id) {
+        scenes = scenes.filter(s => s.id !== id);
+        localStorage.setItem('smarthome_scenes', JSON.stringify(scenes));
+        window.showToast("Scene Deleted", "info");
+        window.loadScenes();
+    };
+
+    window.activateScene = function(id) {
+        const scene = scenes.find(s => s.id === id);
+        if(!scene) return;
+        
+        // In a real app, this would iterate and map to API calls `fetch('/api/device/1/on')`
+        console.log("Activating Scene: " + scene.name);
+        scene.devices.forEach(d => {
+            console.log(` -> Set ${d.name} to ${d.action}`);
+        });
+
+        window.showToast(`▶ ${scene.name} Activated Successfully!`);
+    };
+
+    window.loadScenes = function() {
+        if(!document.getElementById("savedScenesList")) return;
+        const list = document.getElementById("savedScenesList");
+        const msg = document.getElementById("noScenesMsg");
+        
+        list.innerHTML = "";
+        if (scenes.length === 0) {
+            msg.style.display = "block";
+            return;
+        }
+        
+        msg.style.display = "none";
+        scenes.forEach(scene => {
+            const card = document.createElement("div");
+            card.className = "scene-card";
+            
+            let deviceListHTML = scene.devices.map(d => {
+                let color = "white";
+                if(d.action === "ON") color = "#10b981";
+                if(d.action === "OFF") color = "#ef4444";
+                if(d.action === "DIM") color = "#f59e0b";
+                return `<div class="scene-device-item">
+                            <span>${d.name}</span>
+                            <strong style="color: ${color}">${d.action}</strong>
+                        </div>`;
+            }).join("");
+
+            card.innerHTML = `
+                <div class="scene-card-header">
+                    <div class="scene-icon">${scene.icon}</div>
+                    <div class="scene-title">${scene.name}</div>
+                </div>
+                <div class="scene-devices">
+                    ${deviceListHTML}
+                </div>
+                <div class="scene-actions">
+                    <button class="btn-activate" onclick="window.activateScene('${scene.id}')">
+                        ▶ Activate
+                    </button>
+                    <button class="btn-secondary" style="padding: 10px;" onclick="window.editScene('${scene.id}')" title="Edit">✎</button>
+                    <button class="btn-delete" style="padding: 10px;" onclick="window.deleteScene('${scene.id}')" title="Delete">✖</button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    };
+
+    // Initialize initial views
+    if(document.getElementById("sceneDeviceRows").innerHTML.trim() === "") {
+        window.addSceneDeviceRow();
+    }
+    window.loadRules();
+
 </script>

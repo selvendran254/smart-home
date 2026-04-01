@@ -30,6 +30,7 @@
             color:white;
             cursor:pointer;
             font-size:16px;
+            border-radius:6px;
         }
 
         button:hover {
@@ -42,6 +43,7 @@
 <h1 id="roomTitle"></h1>
 
 <div id="controlPanel"></div>
+
 <script>
 
 const params = new URLSearchParams(window.location.search);
@@ -49,8 +51,24 @@ const roomId = parseInt(params.get("id"));
 
 document.getElementById("roomTitle").innerText = "Room " + roomId + " Control";
 
-function controlRelay(num, state) {
-    fetch("http://10.218.237.99:8080/relay/" + num + "/" + state);
+// store relay states
+let relayState = {};
+
+function toggleRelay(num) {
+
+    const button = document.getElementById("relayBtn" + num);
+
+    if (!relayState[num]) {
+        // TURN ON
+        fetch("http://localhost:8080/relay/" + num + "/on");
+        relayState[num] = true;
+        button.innerText = "Turn OFF";
+    } else {
+        // TURN OFF
+        fetch("http://localhost:8080/relay/" + num + "/off");
+        relayState[num] = false;
+        button.innerText = "Turn ON";
+    }
 }
 
 function loadRoomRelays() {
@@ -62,13 +80,16 @@ function loadRoomRelays() {
 
     for (let i = startRelay; i <= endRelay; i++) {
 
+        relayState[i] = false; // default OFF
+
         const card = document.createElement("div");
         card.className = "card";
 
         card.innerHTML = `
             <h3>Relay ${i}</h3>
-            <button onclick="controlRelay(${i}, 'on')">ON</button>
-            <button onclick="controlRelay(${i}, 'off')">OFF</button>
+            <button id="relayBtn${i}" onclick="toggleRelay(${i})">
+                Turn ON
+            </button>
         `;
 
         document.getElementById("controlPanel").appendChild(card);

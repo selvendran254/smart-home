@@ -1,43 +1,48 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+    <meta charset="UTF-8">
     <title>Smart Home</title>
     <style>
-        
+        :root {
+            --accent-color: #4170bc;
+            --hover-color: #22c55e;
+            --btn-color: #2563eb;
+        }
 
         .rooms-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-}
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
 
-.rooms-header h1 {
-    margin: 0;
-}
+        .rooms-header h1 {
+            margin: 0;
+        }
 
-.rooms-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px;
-    padding: 40px;
-}
+        .rooms-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            padding: 40px;
+        }
 
-.card {
-    background:#4170bc;
-    padding:40px;
-    border-radius:15px;
-    width:250px;
-    text-align:center;
-    cursor:pointer;
-    transition: 0.3s;
-}
+        .card.room-card {
+            background: var(--accent-color);
+            padding: 40px;
+            border-radius: 15px;
+            width: 250px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-.card:hover {
-    transform: scale(1.05);
-    background:#334155;
-}
-
+        .card:hover {
+            transform: scale(1.05);
+            background: #334155;
+        }
 
         body {
             margin: 0;
@@ -45,28 +50,33 @@
             display: flex;
             background: #0f172a;
             color: white;
+            min-height: 100vh;
         }
+
         .card {
-    background: #1e293b;
-    padding: 20px;
-    margin: 10px;
-    border-radius: 10px;
-    display: inline-block;
-    width: 220px;
-    color: white;
-}
- 
-#sensorDashboard {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
+            background: #1e293b;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            width: 220px;
+            color: white;
+        }
+
+        #sensorDashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
         .sidebar {
             width: 230px;
             background: #1e293b;
             padding: 20px;
             height: 100vh;
+            position: fixed;
+            overflow-y: auto;
         }
 
         .sidebar h2 {
@@ -82,13 +92,15 @@
         }
 
         .menu-item:hover {
-            background: #22c55e;
-        
+            background: var(--hover-color);
         }
 
         .content {
+            margin-left: 270px;
+            /* sidebar width + padding */
             flex: 1;
             padding: 30px;
+            width: calc(100% - 270px);
         }
 
         input {
@@ -98,7 +110,7 @@
 
         button {
             padding: 8px 12px;
-            background: #2563eb;
+            background: var(--btn-color);
             border: none;
             color: white;
             cursor: pointer;
@@ -118,388 +130,931 @@
             background: #dc2626;
             margin-top: 10px;
         }
+
+        /* --- Profile Widget --- */
+        .profile-widget {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin: 15px 0 5px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        body.light-mode .profile-widget {
+            background: #f1f5f9;
+        }
+
+        .profile-widget:hover {
+            background: var(--hover-color);
+        }
+
+        body.light-mode .profile-widget:hover {
+            background: #e2e8f0;
+        }
+
+        .p-widget-avatar {
+            font-size: 22px;
+            width: 35px;
+            height: 35px;
+            background: #334155;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.light-mode .p-widget-avatar {
+            background: white;
+        }
+
+        .p-widget-name {
+            font-weight: bold;
+            font-size: 14px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- Light Mode Core Overrides --- */
+        body.light-mode {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        body.light-mode .card {
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        body.light-mode .sidebar {
+            background: #ffffff;
+            color: #0f172a;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        body.light-mode .menu-item {
+            color: #334155;
+        }
+
+        body.light-mode .menu-item:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        body.light-mode h1,
+        body.light-mode h2 {
+            color: #0f172a;
+        }
+
+        body.light-mode input {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #0f172a;
+        }
+
+        /* Door Lock Keypad */
+        .door-pin-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 250px;
+            margin: 0 auto;
+        }
+
+        .door-pin-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid #334155;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        body.light-mode .door-pin-btn {
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        .door-pin-btn:hover,
+        .door-pin-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        body.light-mode .door-pin-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .door-pin-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #334155;
+            transition: 0.2s;
+        }
+
+        body.light-mode .door-pin-dot {
+            background: #cbd5e1;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
 
-<div class="sidebar">
-    <h2>Smart Home</h2>
+    <div class="sidebar">
+        <h2>Smart Home</h2>
 
-    <div class="menu-item active" onclick="loadRooms()">Rooms</div>
-    <div class="menu-item" onclick="loadSection('Devices')">Devices</div>
-    <div class="menu-item" onclick="loadSection('Automation')">Automation</div>
-    <div class="menu-item" onclick="loadSection('Energy')">Energy</div>
-    <div class="menu-item" onclick="loadSection('Door Unlock')">Door Unlock</div>
-    <div class="menu-item" onclick="loadSection('Voice Control')">Voice Control</div>
-    <div class="menu-item" onclick="logout()">Logout</div>
-</div>
+        <div class="menu-item active" onclick="window.location.href='http://10.44.229.228/'">
+            Rooms
+        </div>
+        <div class="menu-item active" onclick="window.location.href='http://10.44.229.140/'">
+            Devices
+        </div>
+        <div class="menu-item" onclick="loadSection('Automation')">Automation</div>
+        <div class="menu-item" onclick="loadSection('Energy')">Energy</div>
+        <div class="menu-item" onclick="loadSection('History')">History</div>
+        <div class="menu-item" onclick="loadSection('Door Unlock')">Door Unlock</div>
+        <div class="menu-item" onclick="loadSection('Voice')">Voice</div>
+        <div class="menu-item" onclick="loadSection('Plant Health')">Plant Health</div>
+        <div class="menu-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px;">
+            <span onclick="toggleTheme()" id="themeToggleBtn" style="cursor:pointer; flex-grow:1;">Light Mode</span>
+            <input type="color" id="themeColorPicker" oninput="changeThemeColor(this.value)"
+                title="Choose Background Color"
+                style="width:25px;height:25px;padding:0;border:none;cursor:pointer;background:none; border-radius:4px;">
+        </div>
 
+        <!-- Profile Widget -->
+        <div class="profile-widget" onclick="loadSection('Profile')">
+            <div class="p-widget-avatar" id="global-avatar">👤</div>
+            <div class="p-widget-name" id="global-name">Select Profile</div>
+        </div>
 
-
-<div id="roomList" class="rooms-container"></div>
-
-<div class="content" id="contentArea">
-    <h1>Rooms</h1>
-
-   <div class="rooms-container">
-
-    <div class="card" onclick="openRoom(1)">
-        <h2>Living Room</h2>
+        <div class="menu-item" onclick="logout()">Logout</div>
     </div>
 
-    <div class="card" onclick="openRoom(2)">
-        <h2>Bedroom 1</h2>
-    </div>
-
-    <div class="card" onclick="openRoom(3)">
-        <h2>Bedroom 2</h2>
-    </div>
-
-    <div class="card" onclick="openRoom(4)">
-        <h2>Kitchen</h2>
-    </div>
-
-    <div class="card" onclick="openRoom(5)">
-        <h2>Bathroom</h2>
-    </div>
-
-    <div class="card" onclick="openRoom(6)">
-        <h2>Hall</h2>
-    </div>
-
-</div>
-
-   
-<script>
-    // 🔐 Check login session before loading dashboard
-fetch("/check-session")
-    .then(res => res.text())
-    .then(data => {
-        if (data === "NO") {
-            window.location.href = "login.html";
-        }
-    });
-
-
-const ROOM_API = "http://10.218.237.99:8080/rooms";
-
-
-let sensorInterval;
-
-
-/* =========================
-   MAIN ROUTER
-========================= */
-function loadSection(name) {
-
-    if (sensorInterval) {
-    clearInterval(sensorInterval);
-    sensorInterval = null;
-}
-
-
-    if (name === "Devices") {
-
-        document.getElementById("contentArea").innerHTML = `
-            <h1>Live Sensor Dashboard</h1>
-            <div id="sensorDashboard"></div>
-        `;
-
-        loadSensorData();
-        sensorInterval = setInterval(loadSensorData, 3000);
-    }
-
-    else if (name === "Rooms") {
-        loadRooms();
-    }
-
-    else if (name === "Automation") {
-
-        fetch("automation.html")
-            .then(res => res.text())
-            .then(html => {
-
-                const content = document.getElementById("contentArea");
-
-                // 🔥 CLEAR FIRST (prevents duplication)
-                content.innerHTML = "";
-
-                // Inject new page
-                content.innerHTML = html;
-
-                // Run automation JS functions
-                setTimeout(() => {
-                    if (window.loadDevices) window.loadDevices();
-                    if (window.loadRules) window.loadRules();
-                }, 50);
-            });
-    }
-
-    else if (name === "Energy") {
-
-    document.getElementById("contentArea").innerHTML = `
-        <h1>Energy Monitoring</h1>
-        <canvas id="energyChart" width="800" height="400"></canvas>
-    `;
-
-    fetch("/api/energy")
-        .then(res => res.json())
-        .then(data => {
-
-            const labels = data.map(e => e.date);
-            const values = data.map(e => e.units);
-
-            const ctx = document.getElementById('energy.jpg').getContext('2d');
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Energy Usage',
-                        data: values,
-                        borderWidth: 2
-                    }]
-                }
-            });
-
-        });
-}
-
-else if (name === "Voice Control") {
-
-    fetch("voice.html")
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById("contentArea").innerHTML = html;
-
-            // 🔥 Attach voice logic after loading
-            setupVoice();
-        });
-}
-   
-else if (name === "Door Unlock") {
-
-        document.getElementById("contentArea").innerHTML = `
-            <h1>Door Unlock</h1>
-            <button onclick="startDoor()" style="padding:12px 20px;font-size:16px;">
-                Start Face Unlock
-            </button>
-            <p id="doorStatus"></p>
-        `;
-    }
-
-function startDoor() {
-    fetch("/door/unlock")
-        .then(res => res.text())
-        .then(data => alert(data));
-}
-
-
-
-}
-
-
-/* =========================
-   SENSOR DASHBOARD
-========================= */
-function loadSensorData() {
-
-    const dashboard = document.getElementById("sensorDashboard");
-
-    // 🔥 STOP if dashboard not present (prevents crash on other pages)
-    if (!dashboard) {
-        return;
-    }
-
-    fetch("http://10.218.237.99:8080/sensor/latest")
-        .then(res => {
-            if (!res.ok) {
-                throw new Error("Server not responding");
-            }
-            return res.text();
-        })
-        .then(text => {
-
-            if (!text) {
-                throw new Error("Empty response from backend");
-            }
-
-            const data = JSON.parse(text);
-
-            dashboard.innerHTML = `
-                <div class="card">
-                    <h3>DHT11</h3>
-                    <p>Temperature: ${data.temperature ?? 0} °C</p>
-                    <p>Humidity: ${data.humidity ?? 0} %</p>
-                </div>
-
-                <div class="card">
-                    <h3>PIR Motion</h3>
-                    <p style="color:${data.motionDetected ? 'red' : 'lightgreen'}">
-                        ${data.motionDetected ? "⚠ Motion Detected" : "No Motion"}
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h3>Flame Sensor</h3>
-                    <p style="color:${data.flameDetected ? 'red' : 'lightgreen'}">
-                        ${data.flameDetected ? "🔥 Flame Detected" : "Safe"}
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h3>MQ2 Smoke</h3>
-                    <p style="color:${data.mq2Smoke > 300 ? 'red' : 'lightgreen'}">
-                        Level: ${data.mq2Smoke ?? 0}
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h3>MQ6 LPG</h3>
-                    <p style="color:${data.mq6Lpg > 300 ? 'red' : 'lightgreen'}">
-                        Level: ${data.mq6Lpg ?? 0}
-                    </p>
-                </div>
-
-                <div class="card">
-                    <h3>LDR</h3>
-                    <p>${data.ldrValue ?? 0}</p>
-                </div>
-
-                <div class="card">
-                    <h3>Soil Moisture</h3>
-                    <p>${data.soilMoisture ?? 0}</p>
-                </div>
-
-                <div class="card">
-                    <h3>Water Level</h3>
-                    <p>${data.waterLevel ?? 0}</p>
-                </div>
-            `;
-        })
-        .catch(error => {
-            console.error("Sensor API Error:", error);
-
-            // Only update if dashboard exists
-            if (dashboard) {
-                dashboard.innerHTML =
-                    "<h3 style='color:red;'>Sensor data not available</h3>";
-            }
-        });
-}
-
-
-/* =========================
-   NAVIGATION
-========================= */
-function openRoom(id) {
-    window.location.href = "room.html?id=" + id;
-}
-
-function logout() {
-
-    fetch("/logout")
-        .then(() => {
-            window.location.href = "login.html";
-        })
-        .catch(err => {
-            console.error("Logout error:", err);
-        });
-}
-
-
-
-/* =========================
-   DOOR UNLOCK FUNCTION
-========================= */
-function startDoor() {
-
-    alert("Button working");
-
-    fetch("http://10.218.237.99:8080/door/unlock")
-        .then(res => {
-            alert("Request sent to backend");
-            return res.text();
-        })
-        .then(data => {
-            alert("Server says: " + data);
-        })
-        .catch(err => {
-            alert("Fetch failed");
-            console.error(err);
-        });
-}
-
-
-function loadRooms() {
-
-    document.getElementById("contentArea").innerHTML = `
+    <div class="content" id="contentArea">
         <h1>Rooms</h1>
-
         <div class="rooms-container">
-
-            <div class="card" onclick="openRoom(1)">
+            <div class="card room-card" onclick="openRoom(1)">
                 <h2>Living Room</h2>
             </div>
-
-            <div class="card" onclick="openRoom(2)">
+            <div class="card room-card" onclick="openRoom(2)">
                 <h2>Bedroom 1</h2>
             </div>
-
-            <div class="card" onclick="openRoom(3)">
+            <div class="card room-card" onclick="openRoom(3)">
                 <h2>Bedroom 2</h2>
             </div>
-
-            <div class="card" onclick="openRoom(4)">
+            <div class="card room-card" onclick="openRoom(4)">
                 <h2>Kitchen</h2>
             </div>
-
-            <div class="card" onclick="openRoom(5)">
+            <div class="card room-card" onclick="openRoom(5)">
                 <h2>Bathroom</h2>
             </div>
-
-            <div class="card" onclick="openRoom(6)">
+            <div class="card room-card" onclick="openRoom(6)">
                 <h2>Hall</h2>
             </div>
-
         </div>
-    `;
-}
+    </div>
 
 
-/* =========================
-   INITIAL LOAD
-========================= */
-loadRooms();
-
-function setupVoice() {
-
-    window.startListening = function() {
-
-        if (!('webkitSpeechRecognition' in window)) {
-            alert("Speech Recognition not supported");
-            return;
+    <script>
+        // --- Theme Logic ---
+        if (localStorage.getItem("theme") === "light") {
+            document.body.classList.add("light-mode");
         }
 
-        const recognition = new webkitSpeechRecognition();
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem("theme", isLight ? "light" : "dark");
+            updateThemeToggleText();
+            window.dispatchEvent(new Event('themeChanged')); // notify sub-pages
+        }
 
-        recognition.lang = "en-IN";
-        recognition.start();
+        function updateThemeToggleText() {
+            const btn = document.getElementById("themeToggleBtn");
+            if (!btn) return;
+            btn.innerHTML = document.body.classList.contains("light-mode") ? "Dark Mode" : "Light Mode";
+        }
 
-        recognition.onresult = function(event) {
+        // --- Custom Color Logic ---
+        const savedColor = localStorage.getItem("accentColor");
+        if (savedColor) {
+            document.documentElement.style.setProperty('--accent-color', savedColor);
+            document.documentElement.style.setProperty('--hover-color', savedColor);
+            document.documentElement.style.setProperty('--btn-color', savedColor);
+            window.addEventListener('DOMContentLoaded', () => {
+                const picker = document.getElementById("themeColorPicker");
+                if (picker) picker.value = savedColor;
+            });
+        }
 
-            const transcript = event.results[0][0].transcript;
+        function changeThemeColor(color) {
+            document.documentElement.style.setProperty('--accent-color', color);
+            document.documentElement.style.setProperty('--hover-color', color);
+            document.documentElement.style.setProperty('--btn-color', color);
+            localStorage.setItem("accentColor", color);
+        }
 
-            document.getElementById("result").innerText = transcript;
+        document.addEventListener('DOMContentLoaded', updateThemeToggleText);
 
-            console.log("You said:", transcript);
+        // 🔐 Check login session before loading dashboard
+        fetch("/check-session")
+            .then(res => res.text())
+            .then(data => {
+                if (data === "NO") {
+                    window.location.href = "login.html";
+                }
+            })
+            .catch(e => console.log("Login check failed. Ignored in dev."));
+
+
+        const ROOM_API = "http://localhost:8080/rooms";
+
+        let sensorInterval;
+
+        /* =========================
+           MAIN ROUTER
+        ========================= */
+        function loadSection(name) {
+
+            if (sensorInterval) {
+                clearInterval(sensorInterval);
+                sensorInterval = null;
+            }
+
+            if (name === "Devices") {
+                document.getElementById("contentArea").innerHTML = `
+                    <h1>Live Sensor Dashboard</h1>
+                    <div id="sensorDashboard"></div>
+                `;
+                loadSensorData();
+                sensorInterval = setInterval(loadSensorData, 3000);
+            }
+            else if (name === "Rooms") {
+                loadRooms();
+            }
+            else if (name === "Automation") {
+                fetch("automation.html?v=" + Date.now())
+                    .then(res => res.text())
+                    .then(html => {
+                        const content = document.getElementById("contentArea");
+                        content.innerHTML = html;
+                        const scriptContentMatch = html.match(/<script>([\s\S]*?)<\/script>/i);
+                        if (scriptContentMatch && scriptContentMatch[1]) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = scriptContentMatch[1];
+                            document.body.appendChild(newScript);
+                        }
+                        setTimeout(() => {
+                            if (window.loadDevices) window.loadDevices();
+                            if (window.loadRules) window.loadRules();
+                        }, 50);
+                    });
+            }
+            else if (name === "Profile") {
+                fetch("profile.html?v=" + Date.now())
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById("contentArea").innerHTML = html;
+                        const scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/i);
+                        if (scriptMatch && scriptMatch[1]) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = scriptMatch[1];
+                            document.body.appendChild(newScript);
+                        }
+                    });
+            }
+            else if (name === "Energy") {
+                fetch("energy.html?v=" + Date.now())
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById("contentArea").innerHTML = html;
+                        const scriptContentMatch = html.match(/<script>([\s\S]*?)<\/script>/i);
+                        if (scriptContentMatch && scriptContentMatch[1]) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = scriptContentMatch[1];
+                            document.body.appendChild(newScript);
+                        }
+                    })
+                    .catch(err => console.error("Failed to load energy page", err));
+            }
+            else if (name === "History") {
+                fetch("history.html?v=" + Date.now())
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById("contentArea").innerHTML = html;
+                        const scriptContentMatch = html.match(/<script>([\s\S]*?)<\/script>/i);
+                        if (scriptContentMatch && scriptContentMatch[1]) {
+                            const newScript = document.createElement("script");
+                            newScript.textContent = scriptContentMatch[1];
+                            document.body.appendChild(newScript);
+                        }
+                    })
+                    .catch(err => console.error("Failed to load history page", err));
+            }
+            else if (name === "Voice" || name === "Voice Control" || name === "Voice ") {
+                fetch("voice.html?v=" + Date.now())
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById("contentArea").innerHTML = html;
+                        setupVoice();
+                    });
+            }
+            else if (name === "Door Unlock") {
+                document.getElementById("contentArea").innerHTML = `
+                    <h1>Smart Door Lock</h1>
+                    <div style="display:flex; gap:30px; margin-top:30px; flex-wrap:wrap;">
+                        <!-- PIN Unlock Section -->
+                        <div class="card" style="width:300px; padding:30px; text-align:center;">
+                            <h2>Profile PIN Lock</h2>
+                            <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">Use your profile PIN to unlock</p>
+                            
+                            <!-- Keypad UI -->
+                            <div style="margin-bottom: 20px;">
+                                <div id="doorPinDots" style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+                                    <div class="door-pin-dot"></div>
+                                    <div class="door-pin-dot"></div>
+                                    <div class="door-pin-dot"></div>
+                                    <div class="door-pin-dot"></div>
+                                </div>
+                            </div>
+
+                            <div class="door-pin-grid">
+                                <div class="door-pin-btn" onclick="doorPressPin('1')">1</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('2')">2</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('3')">3</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('4')">4</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('5')">5</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('6')">6</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('7')">7</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('8')">8</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('9')">9</div>
+                                <div class="door-pin-btn" onclick="doorClearPin()" style="font-size:14px; border:none; color:#ef4444;">Clear</div>
+                                <div class="door-pin-btn" onclick="doorPressPin('0')">0</div>
+                                <div class="door-pin-btn" onclick="doorBackspacePin()" style="font-size:16px; border:none;">Del</div>
+                            </div>
+                            
+                            <p id="doorPinStatus" style="margin-top:20px; font-weight:bold; height:20px;"></p>
+                        </div>
+                        
+                        <!-- Face Unlock Section -->
+                        <div class="card" style="width:300px; padding:30px; text-align:center;">
+                            <h2>Face Unlock</h2>
+                            <p style="color:#94a3b8; font-size:14px; margin-bottom:20px;">Use AI camera to verify identity</p>
+                            <div style="font-size:60px; margin:20px 0;"></div>
+                            <button onclick="startDoor()" style="padding:15px 30px;font-size:16px; width:100%; border-radius:10px; margin-top: 15px;">
+                                Start Face Verification
+                            </button>
+                            <p id="doorStatus" style="margin-top:20px; font-weight:bold; height:20px;"></p>
+                        </div>
+                    </div>
+                `;
+
+                // Initialize Keypad Logic
+                window.doorPinEntry = "";
+                window.updateDoorPinDots = function () {
+                    const dots = document.querySelectorAll("#doorPinDots .door-pin-dot");
+                    dots.forEach((dot, idx) => {
+                        const isLightMode = document.body.classList.contains('light-mode');
+                        if (idx < window.doorPinEntry.length) {
+                            dot.style.background = "var(--accent-color)";
+                            dot.style.transform = "scale(1.2)";
+                        } else {
+                            dot.style.background = isLightMode ? "#cbd5e1" : "#334155";
+                            dot.style.transform = "scale(1)";
+                        }
+                    });
+                };
+
+                window.doorPressPin = function (digit) {
+                    if (window.doorPinEntry.length >= 4) return;
+                    window.doorPinEntry += digit;
+                    window.updateDoorPinDots();
+
+                    if (window.doorPinEntry.length === 4) {
+                        setTimeout(window.verifyDoorPin, 200);
+                    }
+                };
+
+                window.doorBackspacePin = function () {
+                    if (window.doorPinEntry.length > 0) {
+                        window.doorPinEntry = window.doorPinEntry.slice(0, -1);
+                        window.updateDoorPinDots();
+                    }
+                };
+
+                window.doorClearPin = function () {
+                    window.doorPinEntry = "";
+                    window.updateDoorPinDots();
+                    document.getElementById("doorPinStatus").innerText = "";
+                };
+
+                window.verifyDoorPin = function () {
+                    const activeId = localStorage.getItem('smarthome_active_profile');
+                    const profiles = JSON.parse(localStorage.getItem('smarthome_profiles')) || [];
+                    const activeProf = profiles.find(p => p.id === activeId);
+                    const statusEl = document.getElementById("doorPinStatus");
+
+                    if (!activeProf || !activeProf.pin) {
+                        statusEl.innerText = "No PIN set for your profile.";
+                        statusEl.style.color = "#ef4444";
+                        setTimeout(window.doorClearPin, 2000);
+                        return;
+                    }
+
+                    if (window.doorPinEntry === activeProf.pin) {
+                        statusEl.innerText = "🔓 Door Unlocked!";
+                        statusEl.style.color = "#22c55e";
+
+                        // Send request to backend
+                        fetch("http://localhost:8080/door/unlock-pin", { method: "POST" })
+                            .then(res => res.text())
+                            .then(data => console.log(data))
+                            .catch(e => console.log("Pin unlock request failed", e));
+
+                        setTimeout(window.doorClearPin, 3000);
+                    } else {
+                        statusEl.innerText = "Incorrect PIN!";
+                        statusEl.style.color = "#ef4444";
+
+                        // Shake effect
+                        const dotsContainer = document.getElementById("doorPinDots");
+                        dotsContainer.style.transform = "translateX(-10px)";
+                        setTimeout(() => dotsContainer.style.transform = "translateX(10px)", 100);
+                        setTimeout(() => dotsContainer.style.transform = "translateX(-10px)", 200);
+                        setTimeout(() => dotsContainer.style.transform = "translateX(0)", 300);
+
+                        setTimeout(window.doorClearPin, 1000);
+                    }
+                };
+            }
+            else if (name === "Plant Health") {
+                document.getElementById("contentArea").innerHTML = `
+                    <h1>Smart Plant Doctor 🌿</h1>
+                    <div class="card" style="width: 100%; max-width: 800px; padding: 30px; margin-top: 20px;">
+                        <p style="color:#94a3b8; font-size:16px; margin-bottom:20px;">Upload a photo of your plant or use your web camera to detect diseases and get treatment solutions from Gemini AI.</p>
+                        
+                        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom: 20px;">
+                            <!-- Upload Button -->
+                            <label style="flex:1; padding:20px; border:2px dashed var(--accent-color); border-radius:10px; cursor:pointer; text-align:center; background:rgba(65, 112, 188, 0.1); min-width: 200px;">
+                                <span style="font-size:30px; display:block; margin-bottom:10px;">📤</span>
+                                <b>Upload Image</b>
+                                <input type="file" id="plantImageInput" accept="image/*" style="display:none;" onchange="handlePlantUpload(event)">
+                            </label>
+                            
+                            <!-- Camera Button -->
+                            <div style="flex:1; padding:20px; border:2px dashed #22c55e; border-radius:10px; cursor:pointer; text-align:center; background:rgba(34, 197, 94, 0.1); min-width: 200px;" onclick="startPlantCamera()">
+                                <span style="font-size:30px; display:block; margin-bottom:10px;">📷</span>
+                                <b>Take Photo</b>
+                            </div>
+                        </div>
+
+                        <!-- Camera Preview (Hidden by default) -->
+                        <div id="plantCameraContainer" style="display:none; text-align:center; margin-bottom:20px;">
+                            <video id="plantVideo" autoplay playsinline style="width:100%; max-width:400px; border-radius:10px; border:2px solid #334155; margin-bottom:10px;"></video>
+                            <br>
+                            <button onclick="capturePlantPhoto()" style="padding:10px 20px; background:#22c55e; border:none; border-radius:5px; color:white; font-size:16px; cursor:pointer;">📸 Snap Photo</button>
+                            <button onclick="stopPlantCamera()" style="padding:10px 20px; background:#ef4444; border:none; border-radius:5px; color:white; font-size:16px; cursor:pointer; margin-left:10px;">Cancel</button>
+                        </div>
+                        
+                        <!-- Image Preview -->
+                        <div id="plantPreviewContainer" style="display:none; text-align:center; margin-bottom:20px;">
+                            <img id="plantPreviewImg" style="max-width:300px; max-height:300px; border-radius:10px; border:2px solid var(--accent-color);">
+                            <br>
+                            <button onclick="analyzePlantImage()" id="analyzePlantBtn" style="margin-top:15px; padding:12px 25px; background:var(--btn-color); border:none; border-radius:5px; color:white; font-size:16px; cursor:pointer; font-weight:bold;">🔍 Analyze Plant</button>
+                        </div>
+
+                        <!-- AI Response Result -->
+                        <div id="plantResultContainer" style="display:none; text-align:left; background:#1e293b; padding:20px; border-radius:10px; border:1px solid #334155; margin-top:20px;">
+                            <h3 style="margin-top:0; color:var(--hover-color);">AI Diagnosis:</h3>
+                            <div id="plantResultText" style="white-space: pre-wrap; line-height: 1.6;"></div>
+                        </div>
+                    </div>
+                `;
+                
+                // --- Javascript logic attached to window for scope ---
+                window.plantSelectedFile = null;
+                window.plantStream = null;
+                
+                window.handlePlantUpload = function(event) {
+                    if (event.target.files && event.target.files[0]) {
+                        window.plantSelectedFile = event.target.files[0];
+                        showPlantPreview(URL.createObjectURL(window.plantSelectedFile));
+                        stopPlantCamera();
+                    }
+                };
+
+                window.startPlantCamera = function() {
+                    const video = document.getElementById('plantVideo');
+                    const cameraContainer = document.getElementById('plantCameraContainer');
+                    const previewContainer = document.getElementById('plantPreviewContainer');
+                    const resultContainer = document.getElementById('plantResultContainer');
+                    
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                            .then(function(stream) {
+                                window.plantStream = stream;
+                                video.srcObject = stream;
+                                cameraContainer.style.display = "block";
+                                previewContainer.style.display = "none";
+                                resultContainer.style.display = "none";
+                            })
+                            .catch(function(err) {
+                                alert("Camera access denied or unavailable: " + err);
+                            });
+                    } else {
+                        alert("Camera API not supported in this browser.");
+                    }
+                };
+                
+                window.capturePlantPhoto = function() {
+                    const video = document.getElementById('plantVideo');
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    canvas.toBlob(function(blob) {
+                        window.plantSelectedFile = new File([blob], "camera_capture.jpg", { type: "image/jpeg" });
+                        showPlantPreview(URL.createObjectURL(window.plantSelectedFile));
+                        stopPlantCamera();
+                    }, "image/jpeg", 0.9);
+                };
+                
+                window.stopPlantCamera = function() {
+                    if (window.plantStream) {
+                        window.plantStream.getTracks().forEach(track => track.stop());
+                        window.plantStream = null;
+                    }
+                    if(document.getElementById('plantCameraContainer')) {
+                        document.getElementById('plantCameraContainer').style.display = "none";
+                    }
+                };
+
+                window.showPlantPreview = function(url) {
+                    const previewImg = document.getElementById('plantPreviewImg');
+                    const previewContainer = document.getElementById('plantPreviewContainer');
+                    const resultContainer = document.getElementById('plantResultContainer');
+                    
+                    previewImg.src = url;
+                    previewContainer.style.display = "block";
+                    resultContainer.style.display = "none";
+                };
+
+                window.analyzePlantImage = function() {
+                    if (!window.plantSelectedFile) return;
+                    
+                    const btn = document.getElementById('analyzePlantBtn');
+                    const resultContainer = document.getElementById('plantResultContainer');
+                    const resultText = document.getElementById('plantResultText');
+                    
+                    btn.innerText = "⏳ Analyzing...";
+                    btn.disabled = true;
+                    btn.style.opacity = "0.7";
+                    
+                    resultContainer.style.display = "block";
+                    resultText.innerHTML = "<span style='color:#94a3b8;'>Uploading to AI Plant Doctor... please wait...</span>";
+
+                    const formData = new FormData();
+                    formData.append("image", window.plantSelectedFile);
+
+                    fetch("/plant/analyze", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(res => res.text())
+                    .then(data => {
+                        btn.innerText = "🔍 Analyze Plant";
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
+                        
+                        // Parse simple markdown if available (bold)
+                        let formattedText = data.replace(/\\*\\*(.*?)\\*\\*/g, '<b>$1</b>');
+                        resultText.innerHTML = formattedText;
+                    })
+                    .catch(err => {
+                        btn.innerText = "🔍 Analyze Plant";
+                        btn.disabled = false;
+                        btn.style.opacity = "1";
+                        resultText.innerHTML = "<span style='color:red;'>Error connecting to server. Make sure Java endpoint is running.</span>";
+                        console.error(err);
+                    });
+                };
+            }
+        } // Close loadSection function
+
+        /* =========================
+           SENSOR DASHBOARD
+        ========================= */
+        async function loadSensorData() {
+            const dashboard = document.getElementById("sensorDashboard");
+            if (!dashboard) return;
+
+            try {
+                const response = await fetch("/sensor/latest");
+                if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+
+                const text = await response.text();
+                if (!text) throw new Error("Empty response from backend");
+
+                const data = JSON.parse(text);
+
+                dashboard.innerHTML = `
+                    <div class="card">
+                        <h3>DHT11</h3>
+                        <p>Temperature: ${data.temperature ?? 0} °C</p>
+                        <p>Humidity: ${data.humidity ?? 0} %</p>
+                    </div>
+                    <div class="card">
+                        <h3>PIR Motion</h3>
+                        <p style="color:${data.motionDetected ? 'red' : 'lightgreen'}">
+                            ${data.motionDetected ? "⚠ Motion Detected" : "No Motion"}
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Flame Sensor</h3>
+                        <p style="color:${data.flameDetected ? 'red' : 'lightgreen'}">
+                            ${data.flameDetected ? "🔥 Flame Detected" : "Safe"}
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>MQ2 Smoke</h3>
+                        <p style="color:${data.mq2Smoke > 300 ? 'red' : 'lightgreen'}">
+                            Level: ${data.mq2Smoke ?? 0}
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>MQ6 LPG</h3>
+                        <p style="color:${data.mq6Lpg > 300 ? 'red' : 'lightgreen'}">
+                            Level: ${data.mq6Lpg ?? 0}
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>MQ7 Gas</h3>
+                        <p style="color:${data.mq7Gas > 300 ? 'red' : 'lightgreen'}">
+                            Level: ${data.mq7Gas ?? 0}
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Ultrasonic</h3>
+                        <p>${data.ultraSonic ?? 0} cm</p>
+                    </div>
+                    <div class="card">
+                        <h3>LDR</h3>
+                        <p>${data.ldrValue ?? 0}</p>
+                    </div>
+                    <div class="card">
+                        <h3>Soil Moisture</h3>
+                        <p>${data.soilMoisture ?? 0}</p>
+                    </div>
+                    <div class="card">
+                        <h3>Water Level</h3>
+                        <p>${data.waterLevel ?? 0}</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("Sensor API Error:", error);
+                if (dashboard) {
+                    dashboard.innerHTML = "<h3 style='color:red;'>Sensor data not available. Check ESP/Network connection.</h3>";
+                }
+            }
+        }
+
+        /* =========================
+           NAVIGATION & UTIL
+        ========================= */
+        function openRoom(id) {
+            window.location.href = "room.html?id=" + id;
+        }
+
+        function logout() {
+            fetch("/logout")
+                .then(() => window.location.href = "login.html")
+                .catch(err => console.error("Logout error:", err));
+        }
+
+        function startDoor() {
+            alert("Button working");
+            fetch("http://localhost:8080/door/unlock")
+                .then(res => {
+                    alert("Request sent to backend");
+                    return res.text();
+                })
+                .then(data => alert("Server says: " + data))
+                .catch(err => {
+                    alert("Fetch failed");
+                    console.error(err);
+                });
+        }
+
+        async function loadRooms() {
+            try {
+                const response = await fetch("/rooms");
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+
+                let html = `<h1>Rooms</h1><div class="rooms-container">`;
+                data.forEach(room => {
+                    html += `
+                        <div class="card room-card" onclick="openRoom(${room.id})">
+                            <h2>${room.name}</h2>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                document.getElementById("contentArea").innerHTML = html;
+
+            } catch (err) {
+                console.error("Fetch failed for loadRooms:", err);
+
+                // Keep the static mock rooms if API fails
+                let html = `<h1>Rooms</h1><div class="rooms-container">
+                    <div class="card room-card" onclick="openRoom(1)"><h2>Living Room</h2></div>
+                    <div class="card room-card" onclick="openRoom(2)"><h2>Bedroom 1</h2></div>
+                    <div class="card room-card" onclick="openRoom(3)"><h2>Bedroom 2</h2></div>
+                    <div class="card room-card" onclick="openRoom(4)"><h2>Kitchen</h2></div>
+                    <div class="card room-card" onclick="openRoom(5)"><h2>Bathroom</h2></div>
+                    <div class="card room-card" onclick="openRoom(6)"><h2>Hall</h2></div>
+                </div>`;
+                document.getElementById("contentArea").innerHTML = html;
+            }
+        }
+
+        // Initialize display
+        // Profile Routing Logic
+        window.updateGlobalProfileBadge = function () {
+            const activeId = localStorage.getItem('smarthome_active_profile');
+            const profiles = JSON.parse(localStorage.getItem('smarthome_profiles')) || [];
+            const activeProf = profiles.find(p => p.id === activeId);
+
+            const avatarEl = document.getElementById("global-avatar");
+            const nameEl = document.getElementById("global-name");
+
+            if (activeProf) {
+                avatarEl.innerText = activeProf.avatar;
+                nameEl.innerText = activeProf.name;
+            } else {
+                avatarEl.innerText = "👤";
+                nameEl.innerText = "Select Profile";
+            }
         };
-    };
 
-}
+        // Boot check
+        window.updateGlobalProfileBadge();
+        if (!localStorage.getItem('smarthome_active_profile')) {
+            loadSection('Profile');
+        } else {
+            loadRooms();
+        }
 
-</script>
+        function setupVoice() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Speech Recognition not supported in this browser.");
+                return;
+            }
 
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-IN";
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            let isListening = false;
+
+            recognition.onstart = function () {
+                isListening = true;
+                const btn = document.getElementById("recordBtn") || document.querySelector("button[onclick='startVoice()']");
+                if (btn) {
+                    btn.innerText = "Listening...";
+                    btn.style.backgroundColor = "#ff5722";
+                }
+                if (document.getElementById("chatBox")) document.getElementById("chatBox").style.display = "block";
+                if (document.getElementById("output")) document.getElementById("output").innerText = "Speak now...";
+                if (document.getElementById("result")) document.getElementById("result").innerText = "";
+            };
+
+            recognition.onspeechend = function () {
+                recognition.stop();
+            };
+
+            recognition.onerror = function (event) {
+                isListening = false;
+                const btn = document.getElementById("recordBtn") || document.querySelector("button[onclick='startVoice()']");
+                if (btn) {
+                    btn.innerText = "Tap to Speak (Error)";
+                    btn.style.backgroundColor = "#f44336";
+                }
+            };
+
+            recognition.onend = function () {
+                isListening = false;
+                const btn = document.getElementById("recordBtn") || document.querySelector("button[onclick='startVoice()']");
+                if (btn) {
+                    btn.innerText = "Tap to Speak";
+                    if (btn.innerText !== "Tap to Speak (Error)") {
+                        btn.style.backgroundColor = "#4CAF50";
+                    }
+                }
+            };
+
+            recognition.onresult = function (event) {
+                let transcript = '';
+                let isFinal = false;
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) isFinal = true;
+                }
+
+                if (document.getElementById("output")) {
+                    document.getElementById("output").innerText = transcript;
+                } else if (document.getElementById("voiceText")) {
+                    document.getElementById("voiceText").innerText = transcript;
+                }
+
+                if (isFinal) {
+                    if (document.getElementById("result")) {
+                        document.getElementById("result").innerHTML = "<span class='loading'>Thinking for a solution...</span>";
+                    }
+
+                    fetch("/voice-command", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ command: transcript })
+                    })
+                        .then(res => res.text())
+                        .then(data => {
+                            if (document.getElementById("result")) document.getElementById("result").innerText = data;
+                            if ('speechSynthesis' in window) {
+                                window.speechSynthesis.cancel();
+                                const utterance = new SpeechSynthesisUtterance(data);
+                                utterance.lang = 'en-IN';
+                                window.speechSynthesis.speak(utterance);
+                            }
+                        })
+                        .catch(err => {
+                            if (document.getElementById("result")) {
+                                document.getElementById("result").innerText = "Error connecting to server.";
+                            }
+                        });
+                }
+            };
+
+            window.startVoice = function () {
+                if (isListening) return;
+                try {
+                    recognition.start();
+                } catch (e) {
+                    alert("Could not start recognition: " + e.message);
+                }
+            };
+
+            window.sendText = function () {
+                const textInput = document.getElementById("textInput");
+                const text = textInput ? textInput.value : "";
+                if (!text.trim()) return;
+
+                if (document.getElementById("chatBox")) document.getElementById("chatBox").style.display = "block";
+                if (document.getElementById("output")) document.getElementById("output").innerText = text;
+                if (document.getElementById("result")) document.getElementById("result").innerHTML = "<span class='loading'>Thinking for a solution...</span>";
+
+                fetch("/voice-command", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ command: text })
+                })
+                    .then(res => res.text())
+                    .then(data => {
+                        if (document.getElementById("result")) document.getElementById("result").innerText = data;
+                        if ('speechSynthesis' in window) {
+                            window.speechSynthesis.cancel();
+                            const utterance = new SpeechSynthesisUtterance(data);
+                            utterance.lang = 'en-IN';
+                            window.speechSynthesis.speak(utterance);
+                        }
+                    })
+                    .catch(err => {
+                        if (document.getElementById("result")) document.getElementById("result").innerText = "Error connecting to server.";
+                    });
+
+                if (textInput) textInput.value = "";
+            };
+        }
+    </script>
 </body>
+
 </html>

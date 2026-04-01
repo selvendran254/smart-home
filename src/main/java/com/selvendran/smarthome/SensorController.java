@@ -1,5 +1,7 @@
 package com.selvendran.smarthome;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -30,16 +32,16 @@ public class SensorController {
        GET http://SERVER_IP:8080/sensor/latest
     ====================================== */
     @GetMapping("/latest")
-    public SensorData getLatest() {
+public ResponseEntity<?> getLatest() {
 
-        List<SensorData> list = repository.findAll();
+    List<SensorData> list = repository.findAll();
 
-        if (list.isEmpty()) {
-            return null;
-        }
-
-        return list.get(list.size() - 1);
+    if (list.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+
+    return ResponseEntity.ok(list.get(list.size() - 1));
+}
 
 
     /* =====================================

@@ -1,25 +1,518 @@
 <style>
-        body {
-            background-color: #1e1e2f;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            text-align: center;
+    /* Grafana-like Dark Theme */
+    .energy-dashboard {
+        background-color: #181b1f;
+        color: #c7d0d9;
+        font-family: 'Inter', 'Roboto', sans-serif;
+        padding: 15px;
+        box-sizing: border-box;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #9ea3a8;
+    }
+
+    .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .panel {
+        background: #22252b;
+        border: 1px solid #2c3235;
+        border-radius: 3px;
+        padding: 12px;
+        position: relative;
+    }
+
+    .panel-title {
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        font-weight: 500;
+        color: #9ea3a8;
+        text-transform: lowercase;
+    }
+
+    /* Top Row Layout */
+    .top-row {
+        display: grid;
+        grid-template-columns: 2fr 1.2fr 1.2fr 1.8fr;
+        gap: 15px;
+        height: 230px; 
+    }
+
+    /* Real Time Power Stats */
+    .real-time-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: 2fr 1fr;
+        gap: 2px;
+        height: calc(100% - 25px);
+        background: #181b1f; /* Gap color */
+    }
+
+    .stat-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+    }
+
+    .stat-box.orange { background-color: #f28221; }
+    .stat-box.green { background-color: #3bb44a; }
+    .stat-box.light-green { background-color: #72d45c; }
+
+    .stat-label { font-size: 11px; font-weight: 600; opacity: 0.9; text-transform: lowercase; }
+    .stat-value { font-size: 28px; font-weight: bold; margin: 2px 0; }
+    .stat-footer { font-size: 13px; font-weight: bold; text-transform: lowercase; }
+
+    /* Chart Containers */
+    .chart-box {
+        position: relative;
+        height: calc(100% - 25px);
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .chart-box-mini {
+        position: relative;
+        height: 90px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .gauge-label {
+        position: absolute;
+        font-size: 26px;
+        font-weight: bold;
+        color: white;
+        bottom: -5px;
+    }
+
+    .trend-panel {
+        height: 400px;
+    }
+    .trend-panel .chart-box { height: calc(100% - 110px); }
+
+    .hot-water-panel {
+        height: 320px;
+    }
+    .hot-water-panel .chart-box { height: calc(100% - 80px); }
+
+    canvas {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Table Details */
+    .detail-text {
+        font-size: 11px;
+        color: #9ea3a8;
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px dotted #3b4247;
+    }
+    .detail-text span:last-child {
+        color: #fff;
+        font-weight: bold;
+        font-family: monospace;
+        font-size: 12px;
+    }
+    .details-container {
+        padding-top: 5px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .legend-table {
+        width: 100%;
+        margin-top: 15px;
+        font-size: 12px;
+        border-collapse: collapse;
+    }
+    .legend-table th {
+        text-align: right;
+        color: #8e9297;
+        font-weight: normal;
+        padding: 4px 5px;
+        border-bottom: 1px solid #3b4247;
+    }
+    .legend-table th:first-child { text-align: left; }
+    .legend-table td {
+        text-align: right;
+        color: #fff;
+        padding: 5px 5px;
+        font-family: monospace;
+        border-bottom: 1px solid #282d30;
+    }
+    .legend-table td:first-child { 
+        text-align: left; 
+        font-family: 'Inter', sans-serif; 
+        color: #c7d0d9;
+        display: flex; 
+        align-items: center; 
+        gap: 8px;
+    }
+    .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; }
+
+    /* --- Light Mode Overrides for Energy --- */
+    body.light-mode .energy-dashboard { background-color: #f1f5f9; color: #334155; }
+    body.light-mode .panel { background: #ffffff; border-color: #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    body.light-mode .dashboard-header { color: #475569; }
+    body.light-mode .panel-title { color: #64748b; }
+    body.light-mode .real-time-stats { background: #e2e8f0; }
+    body.light-mode .stat-value { color: #0f172a; }
+    body.light-mode .stat-footer { color: #0f172a; }
+    body.light-mode .stat-label { color: #e2e8f0; } /* Text on colored boxes */
+    body.light-mode .gauge-label { color: #0f172a; }
+    body.light-mode .detail-text { border-bottom-color: #cbd5e1; color: #64748b; }
+    body.light-mode .detail-text span:last-child { color: #0f172a; }
+    body.light-mode .legend-table th { border-bottom-color: #e2e8f0; color: #64748b; }
+    body.light-mode .legend-table td { border-bottom-color: #f1f5f9; color: #0f172a; }
+    body.light-mode .legend-table td:first-child { color: #475569; }
+    body.light-mode .details-container > div { color: #475569 !important; }
+    body.light-mode .details-container strong { color: #0f172a !important; }
+</style>
+
+<div class="energy-dashboard">
+    <div class="dashboard-header">
+        <span>clevrHome monitoring v1</span>
+        <span>Last 24 hours ⏱️</span>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Top Row -->
+        <div class="top-row">
+            <!-- Real-time Power -->
+            <div class="panel">
+                <h3 class="panel-title">real-time power</h3>
+                <div class="real-time-stats">
+                    <div class="stat-box orange">
+                        <div class="stat-label">battery</div>
+                        <div class="stat-value" id="val-battery">505 W</div>
+                    </div>
+                    <div class="stat-box green">
+                        <div class="stat-label">battery soc</div>
+                        <div class="stat-value" id="val-soc">63%</div>
+                    </div>
+                    <div class="stat-box green">
+                        <div class="stat-label">grid</div>
+                        <div class="stat-value" id="val-grid">19.5 W</div>
+                    </div>
+                    <div class="stat-box light-green">
+                        <div class="stat-label">load</div>
+                        <div class="stat-value" id="val-load">441 W</div>
+                    </div>
+
+                    <div class="stat-box light-green">
+                        <div class="stat-label">battery soc</div>
+                        <div class="stat-footer">good</div>
+                    </div>
+                    <div class="stat-box orange">
+                        <div class="stat-label">battery</div>
+                        <div class="stat-footer">dischg</div>
+                    </div>
+                    <div class="stat-box green">
+                        <div class="stat-label">grid</div>
+                        <div class="stat-footer">on</div>
+                    </div>
+                    <div class="stat-box light-green">
+                        <div class="stat-label">load</div>
+                        <div class="stat-footer">norm</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solar Generation -->
+            <div class="panel">
+                <h3 class="panel-title">solar generation</h3>
+                <div class="chart-box-mini">
+                    <canvas id="solarGauge"></canvas>
+                    <div class="gauge-label" id="val-solar">8 W</div>
+                </div>
+                <div class="details-container">
+                    <div class="detail-text"><span>Today's Yield</span><span id="txt-yield">12.4 kWh</span></div>
+                    <div class="detail-text"><span>Peak Power</span><span>3.20 kW</span></div>
+                    <div class="detail-text"><span>Status</span><span style="color:#72d45c">Active</span></div>
+                </div>
+            </div>
+
+            <!-- Hot Water Temp -->
+            <div class="panel">
+                <h3 class="panel-title">hot water tank</h3>
+                <div class="chart-box-mini">
+                    <canvas id="tempGauge"></canvas>
+                    <div class="gauge-label" id="val-temp">37.0 °C</div>
+                </div>
+                <div class="details-container">
+                    <div class="detail-text"><span>Target Temp</span><span>60.0 °C</span></div>
+                    <div class="detail-text"><span>Heater Status</span><span style="color:#f28221">Idle (0 W)</span></div>
+                    <div class="detail-text"><span>Tank Volume</span><span>250 L</span></div>
+                </div>
+            </div>
+
+            <!-- Daily Energy Stats -->
+            <div class="panel">
+                <h3 class="panel-title">daily energy stats</h3>
+                <div style="height: 100px; width: 100%; position:relative; margin-bottom: 20px;">
+                    <canvas id="dailyBarChart"></canvas>
+                </div>
+                <div class="details-container" style="display:flex; flex-direction: row; flex-wrap: wrap; gap: 8px; font-size: 11px; justify-content: space-between; border-top: 1px solid #2c3235; padding-top: 10px;">
+                    <div style="flex: 1 1 45%; color:#c7d0d9;"><span class="dot" style="background:#72d45c"></span> Bat Chg: <strong style="color:white">5.80 kWh</strong></div>
+                    <div style="flex: 1 1 45%; color:#c7d0d9;"><span class="dot" style="background:#f28221"></span> Bat Dis: <strong style="color:white">4.50 kWh</strong></div>
+                    <div style="flex: 1 1 45%; color:#c7d0d9;"><span class="dot" style="background:#72d45c"></span> Grid Input: <strong style="color:white">7.50 kWh</strong></div>
+                    <div style="flex: 1 1 45%; color:#c7d0d9;"><span class="dot" style="background:#d62728"></span> House Load: <strong style="color:white">18.1 kWh</strong></div>
+                    <div style="flex: 1 1 100%; color:#c7d0d9;"><span class="dot" style="background:#f28221"></span> Total Solar: <strong style="color:white">15.1 kWh</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Power Trends -->
+        <div class="panel trend-panel">
+            <h3 class="panel-title">power trends (last 24h)</h3>
+            <div class="chart-box">
+                <canvas id="powerTrendChart"></canvas>
+            </div>
+            <table class="legend-table">
+                <thead>
+                    <tr><th>Metric Overview</th><th>Min</th><th>Max</th><th>Avg</th><th>Current</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="dot" style="background:#1f77b4"></span> Battery</td><td>481 W</td><td>2041 W</td><td>820 W</td><td id="tbl-curr-bat">505 W</td></tr>
+                    <tr><td><span class="dot" style="background:#9467bd"></span> Grid</td><td>0.0 W</td><td>1120.4 W</td><td>214.3 W</td><td id="tbl-curr-grid">19.5 W</td></tr>
+                    <tr><td><span class="dot" style="background:#d62728"></span> Load</td><td>1020 W</td><td>3100 W</td><td>1540 W</td><td id="tbl-curr-load">441 W</td></tr>
+                    <tr><td><span class="dot" style="background:#f28221"></span> Solar</td><td>0.0 W</td><td>3200.0 W</td><td>1200.0 W</td><td id="tbl-curr-solar">8.0 W</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Hot Water Trends -->
+        <div class="panel hot-water-panel">
+            <h3 class="panel-title">hot water trends (last 24h)</h3>
+            <div class="chart-box">
+                <canvas id="hotWaterTrendChart"></canvas>
+            </div>
+            <table class="legend-table">
+                <thead>
+                    <tr><th>Sensor Point</th><th>Min</th><th>Max</th><th>Avg</th><th>Current</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><span class="dot" style="background:#2ca02c"></span> gw_collector_temp</td><td>12.0 °C</td><td>52.4 °C</td><td>28.3 °C</td><td id="tbl-curr-coll">26.1 °C</td></tr>
+                    <tr><td><span class="dot" style="background:#1f77b4"></span> gw_tank_temp</td><td>21.5 °C</td><td>59.8 °C</td><td>42.6 °C</td><td id="tbl-curr-tank">37.0 °C</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (typeof Chart === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+        script.onload = initCharts;
+        document.head.appendChild(script);
+    } else {
+        initCharts();
+    }
+
+    function initCharts() {
+        // Init theme colors
+        const isLight = document.body.classList.contains('light-mode');
+        let chartColor = isLight ? '#64748b' : '#8e9297';
+        let gridColor = isLight ? '#e2e8f0' : '#2c3235';
+
+        Chart.defaults.color = chartColor;
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.font.size = 10;
+        
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+            elements: { point: { radius: 0 } }
+        };
+
+        // 1. Solar Generation Gauge
+        new Chart(document.getElementById('solarGauge'), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [8, 92], backgroundColor: ['#2ca02c', '#343b40'], borderWidth: 0, circumference: 180, rotation: 270 }] },
+            options: { ...commonOptions, cutout: '75%', plugins: {tooltip: {enabled: false}} }
+        });
+
+        // 2. Hot Water Temp Gauge
+        new Chart(document.getElementById('tempGauge'), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [37, 63], backgroundColor: ['#ffbf00', '#343b40'], borderWidth: 0, circumference: 180, rotation: 270 }] },
+            options: { ...commonOptions, cutout: '75%', plugins: {tooltip: {enabled: false}} }
+        });
+
+        // 3. Daily Energy Stats (Bar Chart)
+        new Chart(document.getElementById('dailyBarChart'), {
+            type: 'bar',
+            data: {
+                labels: ['bat chg', 'bat dis', 'grid', 'load', 'solar'],
+                datasets: [{
+                    data: [5.80, 4.50, 7.50, 18.1, 15.1],
+                    backgroundColor: ['#72d45c', '#f28221', '#72d45c', '#d62728', '#f28221'],
+                    borderRadius: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false, drawBorder: false }, ticks: { font: {size: 9} } },
+                    y: { display: false, grid: { display: false } }
+                }
+            }
+        });
+
+        // Live Scrolling Chart Data Setup
+        const maxPoints = 50;
+        let timeLabels = Array.from({length: maxPoints}, () => new Date().toLocaleTimeString('en-GB', {hour12:false}));
+
+        function initData(pts, val) {
+            let data = [];
+            for(let i=0; i<pts; i++) data.push(val);
+            return data;
         }
 
-        .energy-img {
-            width: 800px;
-            display: block;
-            margin: 20px auto;
-            border-radius: 10px;
-        }
+        const batData = initData(maxPoints, 500);
+        const gridData = initData(maxPoints, 19);
+        const loadData = initData(maxPoints, 440);
+        const solarData = initData(maxPoints, 8);
 
-        canvas {
-            margin-top: 30px;
-        }
-    </style><h1>Energy Monitoring</h1>
+        const collData = initData(maxPoints, 26);
+        const tankData = initData(maxPoints, 37);
 
+        // 4. Power Trends (Live)
+        const powerTrendChart = new Chart(document.getElementById('powerTrendChart'), {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [
+                    { label: 'Battery (W)', data: batData, borderColor: '#1f77b4', borderWidth: 1.5, fill: false, tension: 0.1 },
+                    { label: 'Grid (W)', data: gridData, borderColor: '#9467bd', borderWidth: 1.5, fill: true, backgroundColor: 'rgba(148, 103, 189, 0.1)', tension: 0.1 },
+                    { label: 'Load (W)', data: loadData, borderColor: '#d62728', borderWidth: 1.5, fill: false, tension: 0, stepped: true },
+                    { label: 'Solar (W)', data: solarData, borderColor: '#f28221', borderWidth: 1.5, fill: false, tension: 0.2 }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                animation: { duration: 0 }, // Disable animation for smoother scroll
+                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                scales: { 
+                    x: { grid: { color: '#2c3235' }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } }, 
+                    y: { grid: { color: '#2c3235' }, suggestedMin: 0, suggestedMax: 1000 } 
+                }
+            }
+        });
 
-<img src="\images\energy.jpg" class="energy-img" alt="Energy Image">
+        // 5. Hot Water Trends (Live)
+        const hotWaterTrendChart = new Chart(document.getElementById('hotWaterTrendChart'), {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [
+                    { label: 'Collector Temp (°C)', data: collData, borderColor: '#2ca02c', borderWidth: 1.5, fill: true, backgroundColor: 'rgba(44, 160, 44, 0.1)', tension: 0.4 },
+                    { label: 'Tank Temp (°C)', data: tankData, borderColor: '#1f77b4', borderWidth: 1.5, fill: false, tension: 0.4 }
+                ]
+            },
+            options: {
+                ...commonOptions,
+                animation: { duration: 0 }, // Disable animation for smoother scroll
+                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                scales: { 
+                    x: { grid: { color: '#2c3235' }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } }, 
+                    y: { grid: { color: '#2c3235' }, suggestedMin: 10, suggestedMax: 60 } 
+                }
+            }
+        });
 
-<canvas id="energyChart" width="1500" height="600"></canvas>
+        // Realtime Data Simulation & Graph Scrolling
+        setInterval(() => {
+            const bat = Math.floor(500 + Math.random() * 50);
+            const soc = Math.floor(62 + Math.random() * 2);
+            const grid = (19 + Math.random() * 5).toFixed(1);
+            const load = Math.floor(440 + Math.random() * 30);
+            const solar = Math.floor(7 + Math.random() * 10);
+            const temp = (37 + (Math.random()*0.4 - 0.2)).toFixed(1);
+            const coll = (26 + (Math.random()*1.0 - 0.5)).toFixed(1);
+            const yieldVal = (12.4 + Math.random() * 0.01).toFixed(3);
 
+            // Update main tiles
+            document.getElementById('val-battery').innerText = bat + " W";
+            document.getElementById('val-soc').innerText = soc + "%";
+            document.getElementById('val-grid').innerText = grid + " W";
+            document.getElementById('val-load').innerText = load + " W";
+            document.getElementById('val-solar').innerText = solar + " W";
+            document.getElementById('val-temp').innerText = temp + " °C";
+
+            // Update details
+            document.getElementById('txt-yield').innerText = yieldVal + " kWh";
+
+            // Update tables
+            document.getElementById('tbl-curr-bat').innerText = bat + " W";
+            document.getElementById('tbl-curr-grid').innerText = grid + " W";
+            document.getElementById('tbl-curr-load').innerText = load + " W";
+            document.getElementById('tbl-curr-solar').innerText = solar + " W";
+            
+            document.getElementById('tbl-curr-coll').innerText = coll + " °C";
+            document.getElementById('tbl-curr-tank').innerText = temp + " °C";
+            
+            // Push new data to Live Charts directly into Chart instance
+            const timeStr = new Date().toLocaleTimeString('en-GB', {hour12:false});
+            
+            // Power Chart
+            powerTrendChart.data.labels.push(timeStr);
+            powerTrendChart.data.labels.shift();
+            powerTrendChart.data.datasets[0].data.push(bat); powerTrendChart.data.datasets[0].data.shift();
+            powerTrendChart.data.datasets[1].data.push(parseFloat(grid)); powerTrendChart.data.datasets[1].data.shift();
+            powerTrendChart.data.datasets[2].data.push(load); powerTrendChart.data.datasets[2].data.shift();
+            powerTrendChart.data.datasets[3].data.push(solar); powerTrendChart.data.datasets[3].data.shift();
+            powerTrendChart.update();
+
+            // Hot Water Chart
+            hotWaterTrendChart.data.datasets[0].data.push(parseFloat(coll)); hotWaterTrendChart.data.datasets[0].data.shift();
+            hotWaterTrendChart.data.datasets[1].data.push(parseFloat(temp)); hotWaterTrendChart.data.datasets[1].data.shift();
+            hotWaterTrendChart.update();
+
+        }, 1200);
+
+        // Theme Toggle Listener
+        window.addEventListener('themeChanged', () => {
+             const _isLight = document.body.classList.contains("light-mode");
+             const _textColor = _isLight ? '#64748b' : '#8e9297';
+             const _gridColor = _isLight ? '#e2e8f0' : '#2c3235';
+             
+             Chart.defaults.color = _textColor;
+             
+             // Update scale grids
+             if(powerTrendChart.options.scales.x) powerTrendChart.options.scales.x.grid.color = _gridColor;
+             if(powerTrendChart.options.scales.y) powerTrendChart.options.scales.y.grid.color = _gridColor;
+             if(hotWaterTrendChart.options.scales.x) hotWaterTrendChart.options.scales.x.grid.color = _gridColor;
+             if(hotWaterTrendChart.options.scales.y) hotWaterTrendChart.options.scales.y.grid.color = _gridColor;
+             
+             powerTrendChart.update();
+             hotWaterTrendChart.update();
+        });
+    }
+</script>

@@ -26,4 +26,12 @@ public String unlockDoor() {
         return "Error starting face recognition";
     }
 }
+
+  @PostMapping("/door/unlock-pin")
+  public String unlockDoorWithPin() {
+      // In a real scenario, this might trigger an ESP32 or a relay switch.
+      // For now, we simulate a successful unlock.
+      System.out.println("Door Unlocked securely via Profile PIN");
+      return "Success";
+  }
 }

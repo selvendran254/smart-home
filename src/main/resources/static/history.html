@@ -1,0 +1,500 @@
+<style>
+/* Scoped styles for the history report */
+.history-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.history-controls select, .history-controls button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.history-controls select {
+    background: #334155;
+    color: white;
+}
+
+#btn-download {
+    background: #ec4899; /* Vibrant Pink/Red */
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+    box-shadow: 0 4px 6px rgba(236, 72, 153, 0.3);
+}
+
+#btn-download:hover {
+    background: #db2777;
+    transform: translateY(-2px);
+}
+
+#btn-download.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* The actual printed report container */
+#report-content {
+    background: #ffffff;
+    color: #1e293b;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    text-align: left;
+}
+
+#report-content h1 {
+    color: #4f46e5; /* Indigo */
+    border-bottom: 3px solid #c7d2fe;
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-weight: 800;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+
+.report-date {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: bold;
+    background: #f1f5f9;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.summary-cards-report {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.summary-card-report {
+    flex: 1;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    border-left: 5px solid transparent;
+}
+
+/* Colored Cards */
+.card-primary {
+    background: #eff6ff; 
+    border-left-color: #3b82f6; /* Blue */
+}
+.card-primary h3 { color: #2563eb; }
+.card-primary p { color: #1e3a8a; }
+
+.card-success {
+    background: #f0fdf4; 
+    border-left-color: #22c55e; /* Green */
+}
+.card-success h3 { color: #16a34a; }
+.card-success p { color: #14532d; }
+
+.card-warning {
+    background: #fdf4ff; 
+    border-left-color: #d946ef; /* Magenta */
+}
+.card-warning h3 { color: #c026d3; }
+.card-warning p { color: #701a75; }
+
+.summary-card-report h3 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+.summary-card-report p {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.report-section {
+    margin-bottom: 40px;
+}
+
+.report-section h2 {
+    font-size: 18px;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+table.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table.report-table th, table.report-table td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+table.report-table th {
+    background: #4f46e5; /* Indigo header */
+    color: #ffffff;
+    font-weight: 600;
+}
+
+table.report-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+table.report-table tbody tr:nth-of-type(even) {
+    background-color: #f8fafc;
+}
+
+.alert-row {
+    background: #fef2f2 !important;
+}
+
+.alert-row td {
+    color: #b91c1c;
+    border-bottom: 1px solid #fecaca;
+}
+
+.report-footer {
+    margin-top: 50px;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+}
+</style>
+
+<div class="history-controls">
+    <div>
+        <select id="report-filter" onchange="generateMockData()">
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+        </select>
+    </div>
+    <button id="btn-download" onclick="downloadPDF()">
+        <span>📄</span> <span id="btn-text">Download Report</span>
+    </button>
+</div>
+
+<!-- This is what gets converted to PDF -->
+<div id="report-content">
+    <div class="report-header">
+        <div>
+            <h1>Smart Home Report</h1>
+            <p style="margin: 0; color: #64748b; font-size: 15px;">Comprehensive System Analysis & Logs</p>
+        </div>
+        <div class="report-date" id="report-timestamp">
+            Date: --/--/----
+        </div>
+    </div>
+
+    <div class="report-section">
+        <h2>Energy Usage Summary</h2>
+        <div class="summary-cards-report">
+            <div class="summary-card-report card-primary">
+                <h3>Daily Average</h3>
+                <p id="sum-daily">0 kWh</p>
+            </div>
+            <div class="summary-card-report card-success">
+                <h3>Weekly Total</h3>
+                <p id="sum-weekly">0 kWh</p>
+            </div>
+            <div class="summary-card-report card-warning">
+                <h3>Selected Period</h3>
+                <p id="sum-total">0 kWh</p>
+            </div>
+        </div>
+        <!-- Chart -->
+        <div style="height: 250px; width: 100%; display: flex; justify-content: center; margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <canvas id="energyChart"></canvas>
+        </div>
+    </div>
+
+    <div class="report-section">
+        <h2>Live Sensor Data Snapshots</h2>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Temp</th>
+                    <th>Humidity</th>
+                    <th>Air Quality (MQ2)</th>
+                    <th>Soil Moisture</th>
+                </tr>
+            </thead>
+            <tbody id="sensor-table-body">
+                <!-- dynamic -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h2>Device Activity Logs</h2>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Device</th>
+                    <th>Action</th>
+                    <th>Trigger Origin</th>
+                </tr>
+            </thead>
+            <tbody id="device-table-body">
+                <!-- dynamic -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h2>Security Alerts & Events</h2>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Severity</th>
+                    <th>Event Description</th>
+                </tr>
+            </thead>
+            <tbody id="alert-table-body">
+                <!-- dynamic -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="report-footer">
+        Generated by Smart Home System &bullet; Auto-generated Report Data
+    </div>
+</div>
+
+<script>
+    // Dynamically inject html2pdf.js gracefully
+    if (!window.html2pdf) {
+        let script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+        document.body.appendChild(script);
+    }
+
+    let energyChartInstance = null;
+
+    function generateMockData() {
+        // Set timestamp
+        document.getElementById("report-timestamp").innerText = "Generated on:\n" + new Date().toLocaleString();
+
+        const filterDays = parseInt(document.getElementById("report-filter").value);
+        
+        // Populate Summary
+        const daily = (Math.random() * 5 + 8).toFixed(1); 
+        const weekly = (daily * 7).toFixed(1);
+        const total = (daily * filterDays).toFixed(1);
+        
+        document.getElementById("sum-daily").innerText = daily + " kWh";
+        document.getElementById("sum-weekly").innerText = weekly + " kWh";
+        document.getElementById("sum-total").innerText = total + " kWh";
+
+        // Generate Chart Data
+        const labels = [];
+        const dataPoints = [];
+        for(let i = filterDays; i > 0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            labels.push(d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+            dataPoints.push((Math.random() * 6 + 9).toFixed(1)); 
+        }
+
+        const ctx = document.getElementById('energyChart').getContext('2d');
+        if (energyChartInstance) {
+            energyChartInstance.destroy();
+        }
+
+        // Beautiful Gradient for the Chart
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)'); // Purple
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+        energyChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Energy (kWh)',
+                    data: dataPoints,
+                    borderColor: '#8b5cf6', // Violet
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#e2e8f0', borderDash: [5, 5] },
+                        title: { display: true, text: 'Energy (kWh)', color: '#64748b' },
+                        ticks: { color: '#64748b' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#64748b' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#ffffff',
+                        bodyColor: '#cbd5e1',
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+
+        fetch("/sensor/latest")
+            .then(res => res.json())
+            .then(realData => fillTables(filterDays, realData))
+            .catch(err => fillTables(filterDays, null));
+    }
+
+    function fillTables(days, realData) {
+        // Sort helper
+        const dates = [];
+        for(let i=0; i<10; i++) {
+            let d = new Date();
+            d.setMinutes(d.getMinutes() - Math.floor(Math.random() * 60 * 24 * days));
+            dates.push(d);
+        }
+        dates.sort((a,b) => b - a);
+
+        let sensorHtml = "";
+        let baseTemp = realData && realData.temperature ? realData.temperature : 28;
+        let baseHum = realData && realData.humidity ? realData.humidity : 60;
+        
+        for(let i=0; i<6; i++) {
+            sensorHtml += `
+                <tr>
+                    <td style="color:#64748b;">${dates[i].toLocaleString()}</td>
+                    <td><strong>${(baseTemp + (Math.random()*2-1)).toFixed(1)} &deg;C</strong></td>
+                    <td style="color:#0ea5e9;">${(baseHum + (Math.random()*6-3)).toFixed(1)} %</td>
+                    <td style="color:#d97706;">${Math.floor(Math.random()*100 + 150)} PPM</td>
+                    <td style="color:#10b981;">${Math.floor(Math.random()*50 + 20)} %</td>
+                </tr>
+            `;
+        }
+        document.getElementById("sensor-table-body").innerHTML = sensorHtml;
+
+        const devices = ["Living Room Lights", "Kitchen Relay", "Bedroom AC", "Main Door Lock", "Water Pump"];
+        let deviceHtml = "";
+        for(let i=0; i<6; i++) {
+            let isAuto = Math.random() > 0.5;
+            deviceHtml += `
+                <tr>
+                    <td style="color:#64748b;">${dates[i].toLocaleString()}</td>
+                    <td><strong>${devices[Math.floor(Math.random()*devices.length)]}</strong></td>
+                    <td><span style="background: ${isAuto ? '#d1fae5' : '#fee2e2'}; color: ${isAuto ? '#059669' : '#dc2626'}; padding: 4px 10px; border-radius: 15px; font-weight: bold; font-size: 12px;">${isAuto ? 'ON' : 'OFF'}</span></td>
+                    <td style="color:#475569;">${Math.random() > 0.4 ? 'Manual Toggle' : 'Automation Rule Scheduled'}</td>
+                </tr>
+            `;
+        }
+        document.getElementById("device-table-body").innerHTML = deviceHtml;
+
+        const alerts = [
+            { sev: 'INFO', color: '#3b82f6', bg: '#eff6ff', msg: "System firmware updated successfully." },
+            { sev: 'WARNING', color: '#d97706', bg: '#fef3c7', msg: "Unknown motion detected outside." },
+            { sev: 'WARNING', color: '#d97706', bg: '#fef3c7', msg: "Water level excessively low in tank." },
+            { sev: 'CRITICAL', color: '#dc2626', bg: '#fee2e2', msg: "High LPG gas level warning." },
+        ];
+        
+        let alertHtml = "";
+        
+        if (realData && realData.flameDetected) {
+            alertHtml += `
+                <tr class="alert-row" style="background: #fef2f2;">
+                    <td style="color:#64748b;">${new Date().toLocaleString()}</td>
+                    <td><span style="background: #dc2626; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 11px;">CRITICAL</span></td>
+                    <td style="color:#b91c1c; font-weight:bold;">Active Flame sensor triggered! Check immediately!</td>
+                </tr>
+            `;
+        }
+
+        for(let i=0; i<3; i++) {
+            let a = alerts[Math.floor(Math.random()*alerts.length)];
+            alertHtml += `
+                <tr style="background: ${a.bg};">
+                    <td style="color:#64748b;">${dates[i+2].toLocaleString()}</td>
+                    <td><span style="background: ${a.color}; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 11px;">${a.sev}</span></td>
+                    <td style="color: ${a.color};">${a.msg}</td>
+                </tr>
+            `;
+        }
+        document.getElementById("alert-table-body").innerHTML = alertHtml;
+    }
+
+    function downloadPDF() {
+        if (!window.html2pdf) {
+            alert("Please wait a moment for the PDF engine to load.");
+            return;
+        }
+
+        const btn = document.getElementById("btn-download");
+        const btnText = document.getElementById("btn-text");
+        
+        btn.classList.add("loading");
+        btnText.innerText = "Generating PDF...";
+
+        const element = document.getElementById("report-content");
+        
+        const opt = {
+            margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right
+            filename:     'SmartHome_Report.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1000 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.classList.remove("loading");
+            btnText.innerText = "Download Report";
+        }).catch(err => {
+            console.error("PDF generation failed:", err);
+            btn.classList.remove("loading");
+            btnText.innerText = "Download Failed";
+            alert("Failed to generate PDF.");
+        });
+    }
+
+    setTimeout(generateMockData, 300);
+</script>

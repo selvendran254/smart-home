@@ -47,7 +47,7 @@ public boolean getDeviceStatus(@PathVariable Long deviceId) {
     // 🔥 THIS METHOD MUST BE HERE
     private void sendCommandToESP(Long deviceId, boolean status) {
 
-        String espIp = "10.170.88.228"; // change this
+        String espIp = "localhost"; // change this
 
         String url = "http://" + espIp +
                      "/control?device=" + deviceId +
