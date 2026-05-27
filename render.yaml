@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: smart-home
+    runtime: docker
+    plan: free
+    branch: main
+    healthCheckPath: /check-session
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xmx512m

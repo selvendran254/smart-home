@@ -1,11 +1,13 @@
 package com.selvendran.smarthome;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Component
+@Order(2)
 public class DeviceSeeder implements CommandLineRunner {
 
     private static final Map<String, String[][]> ROOM_DEVICE_TEMPLATES = buildTemplates();

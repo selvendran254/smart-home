@@ -3,6 +3,7 @@ package com.selvendran.smarthome;
 import com.selvendran.smarthome.entity.DeviceData;
 import com.selvendran.smarthome.repository.DeviceDataRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Random;
 
 @Component
+@Order(3)
 public class DeviceDataSeeder implements CommandLineRunner {
 
     private final DeviceDataRepository deviceDataRepository;

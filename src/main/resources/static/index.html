@@ -1567,7 +1567,7 @@
             .catch(e => console.log("Login check failed. Ignored in dev."));
 
 
-        const ROOM_API = "http://localhost:8080/rooms";
+        const ROOM_API = "/rooms";
 
         let sensorInterval;
 
@@ -1801,9 +1801,7 @@
                         }
 
                         // Send request to backend
-                        var pinNotifyUrl = (window.location.origin && window.location.origin !== "null")
-                            ? (window.location.origin + "/door/unlock-pin")
-                            : "http://localhost:8080/door/unlock-pin";
+                        var pinNotifyUrl = "/door/unlock-pin";
                         fetch(pinNotifyUrl, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -1821,9 +1819,7 @@
                         statusEl.style.color = "#ef4444";
 
                         // Send failure request to backend
-                        var pinFailedUrl = (window.location.origin && window.location.origin !== "null")
-                            ? (window.location.origin + "/door/unlock-pin-failed")
-                            : "http://localhost:8080/door/unlock-pin-failed";
+                        var pinFailedUrl = "/door/unlock-pin-failed";
                         fetch(pinFailedUrl, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -1896,9 +1892,7 @@
                     }
 
                     function voiceAskUrl() {
-                        return (window.location.origin && window.location.origin !== "null")
-                            ? (window.location.origin + "/ai/ask")
-                            : "http://localhost:8080/ai/ask";
+                        return "/ai/ask";
                     }
 
                     window.sendVoiceAsk = function () {
@@ -2356,9 +2350,7 @@
                 statusEl.innerText = "Starting face verification…";
                 statusEl.style.color = "#94a3b8";
             }
-            var unlockUrl = (window.location.origin && window.location.origin !== "null")
-                ? (window.location.origin + "/door/unlock")
-                : "http://localhost:8080/door/unlock";
+            var unlockUrl = "/door/unlock";
             fetch(unlockUrl)
                 .then(function (res) { return res.text(); })
                 .then(function (data) {
