@@ -10,7 +10,7 @@ import java.net.URL;
 public class RelayController {
 
     // 🔴 CHANGE THIS to your ESP32 IP
-    private final String espIp = "http://10.170.88.228";
+    private final String espIp = "http://localhost";
 
     @GetMapping("/{num}/{state}")
     public String controlRelay(@PathVariable int num,

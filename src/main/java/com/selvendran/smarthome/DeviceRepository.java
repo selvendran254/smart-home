@@ -6,7 +6,7 @@ import java.util.List;
 public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     List<Device> findByRoomIsNull();
-    List<Device> findByRoomId(Long roomId);
+    List<Device> findByRoom_Id(Long roomId);
 
     
 

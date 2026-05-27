@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local overrides (application-local.properties) — do not commit secrets if you add any
+**/application-local.properties
+
+# Local database and accidental junk files
+data/
+copy
+data.exe/

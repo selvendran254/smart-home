@@ -1,0 +1,13 @@
+# Copy to application-local.properties (same folder) to override defaults.
+# Ollama only — match `ollama list` on your machine.
+
+# ollama.base.url=http://localhost:11434
+# ollama.model=phi3
+# Plant photo analysis — must match `ollama list` (default llava after: ollama pull llava)
+# ollama.vision.model=llava
+# ollama.vision.model=llava:latest
+
+# Optional OpenWeather API (otherwise free Open-Meteo is used)
+# smarthome.weather.openweather.api-key=your_key_here
+# smarthome.weather.latitude=13.0827
+# smarthome.weather.longitude=80.2707

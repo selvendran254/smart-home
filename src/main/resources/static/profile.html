@@ -1,0 +1,678 @@
+<style>
+    .profile-page-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        width: 100%;
+        color: white;
+        text-align: center;
+    }
+
+    body.light-mode .profile-page-wrapper {
+        color: #0f172a;
+    }
+
+    .profile-title {
+        font-size: 40px;
+        font-weight: 600;
+        margin-bottom: 40px;
+        letter-spacing: 1px;
+    }
+
+    .profiles-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
+        max-width: 900px;
+    }
+
+    .profile-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.3s ease, color 0.3s ease;
+        position: relative;
+    }
+    
+    .profile-card:hover {
+        transform: scale(1.1);
+    }
+    
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 15px;
+        background: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        border: 4px solid transparent;
+        transition: border 0.3s ease;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    
+    body.light-mode .profile-avatar {
+        background: #e2e8f0;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .profile-card:hover .profile-avatar {
+        border-color: white;
+    }
+    
+    body.light-mode .profile-card:hover .profile-avatar {
+        border-color: var(--accent-color);
+    }
+
+    .profile-card.active-profile .profile-avatar {
+        border-color: var(--accent-color);
+    }
+
+    .profile-name {
+        margin-top: 15px;
+        font-size: 20px;
+        color: #94a3b8;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    body.light-mode .profile-name {
+        color: #64748b;
+    }
+
+    .profile-card:hover .profile-name {
+        color: white;
+    }
+    
+    body.light-mode .profile-card:hover .profile-name {
+        color: #0f172a;
+    }
+    
+    .profile-card.active-profile .profile-name {
+        color: var(--accent-color);
+        font-weight: bold;
+    }
+
+    .profile-role-badge {
+        font-size: 12px;
+        background: rgba(255,255,255,0.1);
+        padding: 4px 8px;
+        border-radius: 12px;
+        margin-top: 5px;
+        color: #cbd5e1;
+    }
+    
+    body.light-mode .profile-role-badge {
+        background: #cbd5e1;
+        color: #334155;
+    }
+
+    /* Actions */
+    .manage-profiles-container {
+        margin-top: 60px;
+    }
+
+    .btn-manage, .btn-primary {
+        background: transparent;
+        color: #94a3b8;
+        border: 2px solid #94a3b8;
+        padding: 10px 30px;
+        font-size: 18px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    
+    body.light-mode .btn-manage, body.light-mode .btn-primary {
+        color: #64748b;
+        border-color: #64748b;
+    }
+
+    .btn-manage:hover {
+        color: white;
+        border-color: white;
+    }
+    
+    body.light-mode .btn-manage:hover {
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    .btn-primary {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background: var(--btn-color);
+        color: white;
+    }
+
+    /* Form UI */
+    .profile-form-container {
+        display: none;
+        background: #1e293b;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        max-width: 500px;
+        width: 100%;
+        margin-top: 20px;
+        animation: slideUp 0.4s ease-out;
+    }
+    
+    body.light-mode .profile-form-container {
+        background: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid #e2e8f0;
+    }
+
+    .profile-form-container h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    .avatar-selector {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .avatar-option {
+        font-size: 35px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #334155;
+        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    
+    body.light-mode .avatar-option {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+
+    .avatar-option:hover {
+        transform: scale(1.1);
+    }
+
+    .avatar-option.selected {
+        border-color: var(--accent-color);
+        background: rgba(65, 112, 188, 0.2);
+    }
+    
+    .form-input-group {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .form-input-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #cbd5e1;
+        font-weight: bold;
+    }
+    
+    body.light-mode .form-input-group label {
+        color: #475569;
+    }
+
+    .form-input-group input, 
+    .form-input-group select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: white;
+        font-size: 16px;
+        outline: none;
+        box-sizing: border-box;
+    }
+    
+    body.light-mode .form-input-group input,
+    body.light-mode .form-input-group select {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+    
+    .btn-delete-profile {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    
+    .profile-card.edit-mode .btn-delete-profile {
+        display: flex;
+    }
+
+    /* --- PIN PAD CSS --- */
+    .pin-pad-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(15, 23, 42, 0.95);
+        z-index: 9999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    body.light-mode .pin-pad-overlay {
+        background: rgba(248, 250, 252, 0.95);
+    }
+
+    .pin-pad-overlay h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    .pin-dots {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 40px;
+    }
+
+    .pin-dot {
+        width: 15px; height: 15px;
+        border-radius: 50%;
+        background: #334155;
+        transition: 0.2s;
+    }
+    
+    body.light-mode .pin-dot {
+        background: #cbd5e1;
+    }
+
+    .pin-dot.filled {
+        background: var(--accent-color);
+        transform: scale(1.2);
+    }
+    
+    .pin-dots.error {
+        animation: shake 0.4s;
+    }
+    
+    .pin-dots.error .pin-dot.filled {
+        background: #ef4444;
+    }
+
+    .pin-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .pin-btn {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid #334155;
+        color: white;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    
+    body.light-mode .pin-btn {
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+
+    .pin-btn:hover, .pin-btn:active {
+        background: rgba(255,255,255,0.1);
+        transform: scale(1.1);
+    }
+    
+    body.light-mode .pin-btn:hover {
+        background: rgba(0,0,0,0.05);
+    }
+
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        50% { transform: translateX(10px); }
+        75% { transform: translateX(-10px); }
+        100% { transform: translateX(0); }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="profile-page-wrapper">
+    
+    <!-- PIN PAD OVERLAY -->
+    <div class="pin-pad-overlay" id="pinPadOverlay">
+        <h2 id="pinPromptText">Enter PIN</h2>
+        <div class="pin-dots" id="pinDots">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
+        <div class="pin-grid">
+            <div class="pin-btn" onclick="pressPin('1')">1</div>
+            <div class="pin-btn" onclick="pressPin('2')">2</div>
+            <div class="pin-btn" onclick="pressPin('3')">3</div>
+            <div class="pin-btn" onclick="pressPin('4')">4</div>
+            <div class="pin-btn" onclick="pressPin('5')">5</div>
+            <div class="pin-btn" onclick="pressPin('6')">6</div>
+            <div class="pin-btn" onclick="pressPin('7')">7</div>
+            <div class="pin-btn" onclick="pressPin('8')">8</div>
+            <div class="pin-btn" onclick="pressPin('9')">9</div>
+            <div class="pin-btn" onclick="closePinPad()" style="font-size:16px; border:none; color:#ef4444;">Cancel</div>
+            <div class="pin-btn" onclick="pressPin('0')">0</div>
+            <div class="pin-btn" onclick="backspacePin()" style="font-size:16px; border:none;">Del</div>
+        </div>
+    </div>
+
+    <div id="main-view">
+        <h1 class="profile-title" id="main-title">Who's Home?</h1>
+        
+        <div class="profiles-grid" id="profilesList">
+            <!-- Filled via JS -->
+        </div>
+
+        <div class="manage-profiles-container">
+            <button class="btn-manage" id="btn-toggle-manage" onclick="toggleManageMode()">Manage Profiles</button>
+            <button class="btn-manage" id="btn-show-add" onclick="showAddForm()" style="margin-left: 10px;">+ Add User</button>
+        </div>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div class="profile-form-container" id="profileForm">
+        <h2>Create New User</h2>
+        
+        <div class="avatar-selector" id="avatarPickerGrid">
+            <!-- Auto injected -->
+        </div>
+        <input type="hidden" id="selectedAvatar" value="👨">
+        
+        <div class="form-input-group">
+            <label>Name</label>
+            <input type="text" id="newProfileName" placeholder="e.g. Selvendran">
+        </div>
+
+        <div class="form-input-group">
+            <label>4-Digit Secure PIN (Optional)</label>
+            <input type="password" id="newProfilePin" maxlength="4" placeholder="Leave blank for no PIN">
+        </div>
+
+        <div class="form-input-group">
+            <label>Role / Access Level</label>
+            <select id="newProfileRole">
+                <option value="Admin">Admin (Full Control)</option>
+                <option value="Family">Family</option>
+                <option value="Guest">Guest (Limited)</option>
+                <option value="Child">Child (Rooms Only)</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
+            <button class="btn-primary" onclick="saveProfile()" style="padding: 12px 30px; width: 50%;">Save</button>
+            <button class="btn-manage" onclick="hideAddForm()" style="padding: 12px 30px; width: 50%;">Cancel</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const DEFAULT_PROFILES = [
+        { id: 'prof_1', name: 'Admin', avatar: '👨', role: 'Admin', pin: '1234' },
+        { id: 'prof_no', name: 'Guest', avatar: '👤', role: 'Guest', pin: '' }
+    ];
+
+    const AVATAR_OPTIONS = ['👨', '👩', '👦', '👧', '👵', '👴', '👶', '👤', '🐶', '🐱', '🤖', '👽'];
+
+    let profiles = JSON.parse(localStorage.getItem('smarthome_profiles'));
+    if (!profiles || profiles.length === 0) {
+        profiles = JSON.parse(JSON.stringify(DEFAULT_PROFILES));
+        localStorage.setItem('smarthome_profiles', JSON.stringify(profiles));
+    }
+
+    let isManageMode = false;
+
+    // Initialization
+    renderAvatarPicker();
+    renderProfiles();
+
+    function renderProfiles() {
+        const grid = document.getElementById("profilesList");
+        grid.innerHTML = "";
+        
+        const activeProfileId = localStorage.getItem('smarthome_active_profile');
+
+        profiles.forEach(prof => {
+            const card = document.createElement("div");
+            card.className = "profile-card";
+            if(prof.id === activeProfileId) card.classList.add("active-profile");
+            if(isManageMode) card.classList.add("edit-mode");
+
+            card.innerHTML = `
+                <div class="profile-avatar" onclick="handleProfileClick('${prof.id}')">${prof.avatar}</div>
+                <div class="profile-name">${prof.name}</div>
+                <div class="profile-role-badge">${prof.role}</div>
+                <button class="btn-delete-profile" onclick="deleteProfile(event, '${prof.id}')">✖</button>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // --- PIN LOCK STATE ---
+    let pendingProfileAuth = null;
+    let currentPinEntry = "";
+
+    function handleProfileClick(id) {
+        if(isManageMode) return;
+        
+        const prof = profiles.find(p => p.id === id);
+        if(!prof) return;
+
+        if (prof.pin && prof.pin.length > 0) {
+            showPinPad(prof);
+        } else {
+            loginAsProfile(prof.id);
+        }
+    }
+    
+    function loginAsProfile(id) {
+        localStorage.setItem('smarthome_active_profile', id);
+        renderProfiles();
+        if(window.updateGlobalProfileBadge) {
+            window.updateGlobalProfileBadge();
+            setTimeout(() => {
+                if(window.loadSection) window.loadSection("Rooms");
+            }, 600);
+        }
+    }
+
+    // --- PIN LOGIC ---
+    function showPinPad(prof) {
+        pendingProfileAuth = prof;
+        currentPinEntry = "";
+        document.getElementById("pinPromptText").innerText = `Enter PIN for ${prof.name}`;
+        updatePinDots();
+        document.getElementById("pinDots").classList.remove("error");
+        document.getElementById("pinPadOverlay").style.display = "flex";
+    }
+
+    function closePinPad() {
+        document.getElementById("pinPadOverlay").style.display = "none";
+        pendingProfileAuth = null;
+        currentPinEntry = "";
+    }
+
+    function pressPin(digit) {
+        if(currentPinEntry.length >= 4) return;
+        currentPinEntry += digit;
+        updatePinDots();
+        
+        if(currentPinEntry.length === 4) {
+            setTimeout(verifyPin, 200);
+        }
+    }
+
+    function backspacePin() {
+        if(currentPinEntry.length > 0) {
+            currentPinEntry = currentPinEntry.slice(0, -1);
+            updatePinDots();
+        }
+    }
+
+    function updatePinDots() {
+        const dots = document.querySelectorAll("#pinDots .pin-dot");
+        dots.forEach((dot, idx) => {
+            if(idx < currentPinEntry.length) dot.classList.add("filled");
+            else dot.classList.remove("filled");
+        });
+    }
+
+    function verifyPin() {
+        if(!pendingProfileAuth) return;
+        if(currentPinEntry === pendingProfileAuth.pin) {
+            // Success
+            document.getElementById("pinPadOverlay").style.display = "none";
+            loginAsProfile(pendingProfileAuth.id);
+        } else {
+            // Error
+            const dotsContainer = document.getElementById("pinDots");
+            dotsContainer.classList.add("error");
+            if(window.showToast) window.showToast("Incorrect PIN", "error");
+            else alert("Incorrect PIN");
+            
+            setTimeout(() => {
+                dotsContainer.classList.remove("error");
+                currentPinEntry = "";
+                updatePinDots();
+            }, 600);
+        }
+    }
+
+    function toggleManageMode() {
+        isManageMode = !isManageMode;
+        const btn = document.getElementById("btn-toggle-manage");
+        
+        if(isManageMode) {
+            btn.innerText = "Done";
+            btn.style.background = "white";
+            btn.style.color = "black";
+            document.getElementById("main-title").innerText = "Manage Profiles";
+        } else {
+            btn.innerText = "Manage Profiles";
+            btn.style.background = "transparent";
+            btn.style.color = "";
+            document.getElementById("main-title").innerText = "Who's Home?";
+        }
+        renderProfiles();
+    }
+
+    function deleteProfile(event, id) {
+        event.stopPropagation();
+        if(profiles.length <= 1) {
+            alert("You must have at least one profile.");
+            return;
+        }
+        
+        const activeId = localStorage.getItem('smarthome_active_profile');
+        if(activeId === id) {
+            localStorage.removeItem('smarthome_active_profile');
+        }
+
+        profiles = profiles.filter(p => p.id !== id);
+        localStorage.setItem('smarthome_profiles', JSON.stringify(profiles));
+        renderProfiles();
+        
+        if(window.updateGlobalProfileBadge) window.updateGlobalProfileBadge();
+    }
+
+    // --- FORM LOGIC ---
+    function renderAvatarPicker() {
+        const grid = document.getElementById("avatarPickerGrid");
+        grid.innerHTML = "";
+        AVATAR_OPTIONS.forEach((icon, idx) => {
+            const opt = document.createElement("div");
+            opt.className = "avatar-option" + (idx === 0 ? " selected" : "");
+            opt.innerText = icon;
+            opt.onclick = () => {
+                document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                opt.classList.add('selected');
+                document.getElementById('selectedAvatar').value = icon;
+            };
+            grid.appendChild(opt);
+        });
+    }
+
+    function showAddForm() {
+        document.getElementById("main-view").style.display = "none";
+        document.getElementById("profileForm").style.display = "block";
+        document.getElementById("newProfileName").value = "";
+    }
+
+    function hideAddForm() {
+        document.getElementById("main-view").style.display = "block";
+        document.getElementById("profileForm").style.display = "none";
+    }
+
+    function saveProfile() {
+        const name = document.getElementById("newProfileName").value.trim();
+        const pin = document.getElementById("newProfilePin").value.trim();
+        const role = document.getElementById("newProfileRole").value;
+        const avatar = document.getElementById("selectedAvatar").value;
+
+        if(!name) {
+            alert("Please provide a name.");
+            return;
+        }
+
+        profiles.push({
+            id: 'prof_' + Date.now(),
+            name,
+            role,
+            avatar,
+            pin
+        });
+        
+        localStorage.setItem('smarthome_profiles', JSON.stringify(profiles));
+
+        // Return to normal mode
+        if(isManageMode) toggleManageMode();
+        hideAddForm();
+        renderProfiles();
+    }
+
+</script>

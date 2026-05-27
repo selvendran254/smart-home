@@ -2,6 +2,7 @@ package com.selvendran.smarthome;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class Device {
@@ -63,5 +64,10 @@ public class Device {
 
     public void setRoom(Room room) {
         this.room = room;
+    }
+
+    @JsonProperty("roomId")
+    public Long getRoomId() {
+        return room != null ? room.getId() : null;
     }
 }

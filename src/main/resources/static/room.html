@@ -1,82 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Room Control</title>
     <style>
+        * { box-sizing: border-box; }
         body {
-            font-family: Arial;
-            background:#0f172a;
-            color:white;
-            text-align:center;
+            font-family: system-ui, Arial, sans-serif;
+            background: #0f172a;
+            color: #fff;
+            margin: 0;
+            padding: 24px;
+            border-top: 3px solid var(--page-accent, #f97316);
         }
-
-        h1 {
-            margin-top:40px;
+        body.light-mode { background: #f8fafc; color: #0f172a; }
+        .top-bar { max-width: 1100px; margin: 0 auto 24px; }
+        .back-link {
+            color: #60a5fa; text-decoration: none; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
         }
-
-        .card {
-            background:#1e293b;
-            padding:20px;
-            margin:20px;
-            border-radius:10px;
-            display:inline-block;
-            width:220px;
+        .hero-rooms {
+            background: linear-gradient(135deg, #431407 0%, #7c2d12 40%, #581c87 100%);
+            border-radius: 20px; padding: 24px 28px; margin-top: 16px;
+            border-bottom: 4px solid #f97316;
         }
-
-        button {
-            padding:10px 20px;
-            background:#2563eb;
-            border:none;
-            color:white;
-            cursor:pointer;
-            font-size:16px;
+        body.light-mode .hero-rooms { background: linear-gradient(135deg, #fff7ed, #faf5ff); }
+        .hero-rooms h1 { margin: 0; font-size: 28px; color: #fff7ed; }
+        body.light-mode .hero-rooms h1 { color: #9a3412; }
+        .room-sub { color: #fed7aa; margin: 8px 0 0; font-size: 14px; }
+        body.light-mode .room-sub { color: #c2410c; }
+        .room-icon { font-size: 48px; float: right; margin-top: -8px; }
+        .section-title {
+            max-width: 1100px; margin: 28px auto 14px;
+            font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: #64748b;
+            padding-bottom: 8px; border-bottom: 1px solid #334155;
         }
-
-        button:hover {
-            background:#1d4ed8;
+        body.light-mode .section-title { border-color: #e2e8f0; }
+        .device-grid {
+            max-width: 1100px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;
         }
+        .device-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155; border-radius: 16px; padding: 20px;
+            min-height: 170px; display: flex; flex-direction: column; gap: 10px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        body.light-mode .device-card { background: #fff; border-color: #e2e8f0; box-shadow: 0 2px 8px rgba(15,23,42,0.06); }
+        .device-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
+        .device-card.on { border-color: #22c55e; box-shadow: 0 0 0 1px rgba(34,197,94,0.3); }
+        .device-card.status-safe { border-left: 4px solid #22c55e; }
+        .device-card.status-off { border-left: 4px solid #64748b; }
+        .device-top { display: flex; justify-content: space-between; align-items: start; }
+        .device-icon { font-size: 28px; }
+        .device-name { margin: 0; font-size: 17px; font-weight: 700; }
+        .device-type { margin: 0; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; }
+        .device-status { margin: auto 0 0; font-size: 14px; font-weight: 600; }
+        .device-status.on { color: #22c55e; }
+        .device-status.off { color: #94a3b8; }
+        .toggle-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+        .toggle-btn.on { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .toggle-btn:disabled { opacity: 0.65; cursor: wait; }
+        .empty-msg, .error-msg { max-width: 1100px; margin: 30px auto; text-align: center; color: #94a3b8; }
+        .error-msg { color: #ef4444; }
+        .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; max-width: 1100px; margin: 0 auto; }
+        .skeleton-card { background: #1e293b; border-radius: 16px; min-height: 170px; animation: skPulse 1.4s ease-in-out infinite; }
+        body.light-mode .skeleton-card { background: #e2e8f0; }
+        @keyframes skPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
+    <script src="app-enhancements.js"></script>
 </head>
 <body>
 
-<h1 id="roomTitle"></h1>
+<div class="top-bar">
+    <a class="back-link" href="index.html">← Back to Rooms</a>
+    <div class="hero-rooms" id="roomHeader">
+        <span class="room-icon" id="roomIcon">🏠</span>
+        <h1 class="room-title" id="roomTitle">Room Control</h1>
+        <p class="room-sub" id="roomSub">Loading devices…</p>
+    </div>
+</div>
 
-<div id="controlPanel"></div>
+<h2 class="section-title">Room Devices</h2>
+<div id="deviceGrid" class="device-grid"></div>
+<p id="statusMsg" class="empty-msg"></p>
+
 <script>
+    if (localStorage.getItem("theme") === "light") document.body.classList.add("light-mode");
 
-const params = new URLSearchParams(window.location.search);
-const roomId = parseInt(params.get("id"));
+    const params = new URLSearchParams(window.location.search);
+    const roomId = parseInt(params.get("id"), 10);
 
-document.getElementById("roomTitle").innerText = "Room " + roomId + " Control";
+    const TYPE_ICONS = {
+        LIGHT: "💡", FAN: "🌀", TV: "📺", AC: "❄️", CURTAIN: "🪟",
+        LAMP: "🛋️", EXHAUST: "💨", APPLIANCE: "🔌", GEYSER: "🔥",
+        HEATER: "♨️", DOOR: "🚪", BELL: "🔔"
+    };
 
-function controlRelay(num, state) {
-    fetch("http://10.218.237.99:8080/relay/" + num + "/" + state);
-}
-
-function loadRoomRelays() {
-
-    document.getElementById("controlPanel").innerHTML = "";
-
-    const startRelay = (roomId - 1) * 2 + 1;
-    const endRelay = startRelay + 1;
-
-    for (let i = startRelay; i <= endRelay; i++) {
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-            <h3>Relay ${i}</h3>
-            <button onclick="controlRelay(${i}, 'on')">ON</button>
-            <button onclick="controlRelay(${i}, 'off')">OFF</button>
-        `;
-
-        document.getElementById("controlPanel").appendChild(card);
+    function roomMeta(name) {
+        const n = (name || "").toLowerCase();
+        if (n.includes("living")) return { icon: "🛋️", theme: "living", desc: "Control TV, AC, lights & curtains" };
+        if (n.includes("bed")) return { icon: "🛏️", theme: "bedroom", desc: "Control lights, fan, AC & night lamp" };
+        if (n.includes("kitchen")) return { icon: "🍳", theme: "kitchen", desc: "Control kitchen lights & appliances" };
+        if (n.includes("bath")) return { icon: "🚿", theme: "bathroom", desc: "Control lights, geyser & exhaust" };
+        if (n.includes("hall")) return { icon: "🚪", theme: "hall", desc: "Control hall lights, fan & door" };
+        return { icon: "🏠", theme: "hall", desc: "Smart room device controls" };
     }
-}
 
-loadRoomRelays();
+    function apiUrl(path) {
+        return (window.location.origin && window.location.origin !== "null")
+            ? (window.location.origin + path)
+            : (window.location.origin + path);
+    }
 
+    function showLoadingSkeleton() {
+        const grid = document.getElementById("deviceGrid");
+        if (window.SmartHomeUI) grid.innerHTML = SmartHomeUI.skeletonHtml("rooms");
+        else grid.innerHTML = '<div class="skeleton-card"></div>'.repeat(4);
+    }
+
+    async function loadRoomPage() {
+        const grid = document.getElementById("deviceGrid");
+        const status = document.getElementById("statusMsg");
+        showLoadingSkeleton();
+
+        if (!roomId || Number.isNaN(roomId)) {
+            status.className = "error-msg";
+            status.textContent = "Invalid room.";
+            grid.innerHTML = "";
+            return;
+        }
+
+        try {
+            const [roomsRes, devicesRes] = await Promise.all([
+                fetch(apiUrl("/rooms")),
+                fetch(apiUrl("/devices/room/" + roomId))
+            ]);
+
+            let roomName = "Room " + roomId;
+            if (roomsRes.ok) {
+                const rooms = await roomsRes.json();
+                const room = rooms.find(function (r) { return r.id === roomId; });
+                if (room) {
+                    roomName = room.name;
+                    const meta = roomMeta(room.name);
+                    document.getElementById("roomTitle").innerText = room.name;
+                    document.getElementById("roomSub").innerText = meta.desc;
+                    document.getElementById("roomIcon").innerText = meta.icon;
+                }
+            }
+
+            if (!devicesRes.ok) throw new Error("HTTP " + devicesRes.status);
+            const devices = await devicesRes.json();
+
+            if (!devices.length) {
+                grid.innerHTML = "";
+                status.textContent = "No devices in " + roomName + " yet.";
+                return;
+            }
+
+            status.textContent = "";
+            grid.innerHTML = devices.map(function (d) {
+                const on = d.status === true;
+                return '<div class="device-card ' + (on ? "on status-safe" : "status-off") + '">' +
+                    '<div class="device-top"><div><p class="device-type">' + (d.type || "DEVICE") + '</p>' +
+                    '<h3 class="device-name">' + d.name + '</h3></div><span class="device-icon">' + (TYPE_ICONS[d.type] || "🏠") + '</span></div>' +
+                    '<p class="device-status ' + (on ? "on" : "off") + '">' + (on ? "ON" : "OFF") + '</p>' +
+                    '<button type="button" class="toggle-btn ' + (on ? "on" : "") + '" id="btn' + d.id + '" onclick="toggleDevice(' + d.id + ', ' + on + ')">' +
+                    (on ? "Turn OFF" : "Turn ON") + '</button></div>';
+            }).join("");
+        } catch (err) {
+            console.error(err);
+            grid.innerHTML = "";
+            status.className = "error-msg";
+            status.textContent = "Could not load room devices.";
+            if (window.SmartHomeUI) SmartHomeUI.showToast("Could not load devices", "error");
+        }
+    }
+
+    async function toggleDevice(id, wasOn) {
+        const btn = document.getElementById("btn" + id);
+        if (btn) { btn.disabled = true; btn.innerText = "…"; }
+        try {
+            const res = await fetch(apiUrl("/devices/toggle/" + id), { method: "PUT" });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            if (window.SmartHomeUI) {
+                SmartHomeUI.showToast(wasOn ? "Device turned OFF" : "Device turned ON", "success");
+            }
+            await loadRoomPage();
+        } catch (err) {
+            console.error(err);
+            if (btn) { btn.disabled = false; btn.innerText = "Retry"; }
+            if (window.SmartHomeUI) SmartHomeUI.showToast("Toggle failed", "error");
+        }
+    }
+
+    loadRoomPage();
 </script>
 </body>
 </html>

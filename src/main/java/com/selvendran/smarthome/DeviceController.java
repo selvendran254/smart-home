@@ -1,5 +1,6 @@
 package com.selvendran.smarthome;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -10,13 +11,25 @@ public class DeviceController {
 
     private final DeviceRepository deviceRepo;
     private final RoomRepository roomRepo;
+    private final String espBaseUrl;
 
     public DeviceController(DeviceRepository deviceRepo,
-                            RoomRepository roomRepo) {
+                            RoomRepository roomRepo,
+                            @Value("${smarthome.esp.base-url:http://localhost}") String espBaseUrl) {
         this.deviceRepo = deviceRepo;
         this.roomRepo = roomRepo;
+        this.espBaseUrl = espBaseUrl.replaceAll("/$", "");
     }
 
+    @GetMapping
+    public List<Device> getAllDevices() {
+        return deviceRepo.findAll();
+    }
+
+    @GetMapping("/room/{roomId}")
+    public List<Device> getDevicesByRoom(@PathVariable Long roomId) {
+        return deviceRepo.findByRoom_Id(roomId);
+    }
 
     @GetMapping("/status/{deviceId}")
 public boolean getDeviceStatus(@PathVariable Long deviceId) {
@@ -47,9 +60,7 @@ public boolean getDeviceStatus(@PathVariable Long deviceId) {
     // 🔥 THIS METHOD MUST BE HERE
     private void sendCommandToESP(Long deviceId, boolean status) {
 
-        String espIp = "10.170.88.228"; // change this
-
-        String url = "http://" + espIp +
+        String url = espBaseUrl +
                      "/control?device=" + deviceId +
                      "&state=" + (status ? "ON" : "OFF");
 

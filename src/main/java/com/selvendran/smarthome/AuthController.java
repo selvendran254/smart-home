@@ -1,14 +1,21 @@
 package com.selvendran.smarthome;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final DoorNotifyService doorNotifyService;
+
+    public AuthController(UserRepository userRepository, DoorNotifyService doorNotifyService) {
+        this.userRepository = userRepository;
+        this.doorNotifyService = doorNotifyService;
+    }
 
     @PostMapping("/register")
     public String register(@RequestBody User user) {
@@ -24,20 +31,42 @@ public class AuthController {
     @PostMapping("/login")
     public String login(@RequestBody User user, HttpSession session) {
 
-        User existing = userRepository.findByUsername(user.getUsername());
+        if (user.getUsername() == null || user.getUsername().isBlank()) {
+            doorNotifyService.notifyLoginFailed("(none)", "invalid_request");
+            return "Enter username";
+        }
 
-        if (existing == null) return "User not found";
+        String attemptUser = user.getUsername().strip();
+        User existing = userRepository.findByUsername(attemptUser);
 
-        if (!existing.getPassword().equals(user.getPassword()))
+        if (existing == null) {
+            doorNotifyService.notifyLoginFailed(attemptUser, "user_not_found");
+            return "User not found";
+        }
+
+        if (!existing.getPassword().equals(user.getPassword())) {
+            doorNotifyService.notifyLoginFailed(attemptUser, "wrong_password");
             return "Wrong password";
+        }
 
         session.setAttribute("user", existing.getUsername());
+        doorNotifyService.notifyLoginSuccess(existing.getUsername());
         return "Login success";
     }
 
     @GetMapping("/check-session")
     public String checkSession(HttpSession session) {
         return session.getAttribute("user") == null ? "NO" : "YES";
+    }
+
+    /** Logged-in server account (separate from local “profile” in the UI). */
+    @GetMapping("/auth/me")
+    public ResponseEntity<Map<String, Object>> authMe(HttpSession session) {
+        Object u = session.getAttribute("user");
+        if (u == null) {
+            return ResponseEntity.status(401).body(Map.of("loggedIn", false));
+        }
+        return ResponseEntity.ok(Map.of("loggedIn", true, "username", u.toString()));
     }
 
     @GetMapping("/logout")
